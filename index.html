@@ -1,0 +1,2144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Ninja de los Números: Aventura Matemática 1° Básico</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Fredoka y Nunito para máxima legibilidad infantil -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font-display: 'Fredoka', cursive, sans-serif;
+      --font-body: 'Nunito', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: linear-gradient(180deg, #38bdf8 0%, #bae6fd 45%, #bbf7d0 46%, #4ade80 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+      margin: 0;
+      color: #1e293b;
+    }
+
+    h1, h2, h3, .font-display {
+      font-family: var(--font-display);
+    }
+
+    /* Botones 3D táctiles estilo videojuego educativo */
+    .btn-game {
+      transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 6px 0 rgba(0, 0, 0, 0.22), 0 10px 18px rgba(0, 0, 0, 0.15);
+      cursor: pointer;
+    }
+    .btn-game:hover:not(:disabled) {
+      transform: translateY(-3px) scale(1.02);
+      filter: brightness(1.05);
+    }
+    .btn-game:active:not(:disabled) {
+      transform: translateY(4px) scale(0.98);
+      box-shadow: 0 2px 0 rgba(0, 0, 0, 0.22);
+    }
+    .btn-game:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      filter: grayscale(0.4);
+    }
+
+    /* Animaciones divertidas */
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-8px) rotate(2deg); }
+    }
+    .animate-float {
+      animation: floatSlow 3.5s ease-in-out infinite;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      75% { transform: scale(1.08); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-pop {
+      animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes shakeWrong {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-10px) rotate(-2deg); }
+      40% { transform: translateX(10px) rotate(2deg); }
+      60% { transform: translateX(-8px); }
+      80% { transform: translateX(8px); }
+    }
+    .animate-shake {
+      animation: shakeWrong 0.45s ease-in-out;
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.7); }
+      50% { box-shadow: 0 0 0 12px rgba(250, 204, 21, 0); }
+    }
+    .animate-pulse-glow {
+      animation: pulseGlow 2s infinite;
+    }
+
+    /* Cubitos estilo Ten Frame / Base 10 */
+    .cube-cell {
+      transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+      cursor: pointer;
+    }
+    .cube-cell:hover {
+      transform: scale(1.07);
+    }
+    .cube-cell.active {
+      background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+      border-color: #9a3412;
+      box-shadow: inset 0 3px 0 rgba(255,255,255,0.45), 0 4px 0 #9a3412;
+      transform: translateY(-2px);
+    }
+
+    /* Nubes decorativas del fondo */
+    .cloud {
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 999px;
+      position: fixed;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* Contenedor principal de juego */
+    .game-card {
+      background: rgba(255, 255, 255, 0.96);
+      border: 5px solid #ffffff;
+      box-shadow: 0 18px 35px rgba(15, 23, 42, 0.16);
+    }
+
+    /* Canvas de confeti */
+    #confetti-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* Scrollbar amigable */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #94a3b8;
+      border-radius: 999px;
+    }
+  </style>
+</head>
+<body class="relative flex flex-col min-h-screen">
+
+  <!-- Canvas para celebración con confeti -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- Fondo ilustrado SVG (Nubes, montañas y árboles del Bosque Mágico) -->
+  <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+    <svg class="w-full h-full" preserveAspectRatio="none" viewBox="0 0 1440 900">
+      <!-- Sol sonriente -->
+      <g transform="translate(120, 110)">
+        <circle cx="0" cy="0" r="65" fill="#fde047" opacity="0.5"/>
+        <circle cx="0" cy="0" r="48" fill="#facc15"/>
+        <circle cx="-14" cy="-8" r="5" fill="#713f12"/>
+        <circle cx="14" cy="-8" r="5" fill="#713f12"/>
+        <path d="M -14 10 Q 0 24 14 10" stroke="#713f12" stroke-width="4" fill="none" stroke-linecap="round"/>
+      </g>
+      <!-- Nubes -->
+      <g fill="#ffffff" opacity="0.88">
+        <path d="M260 130 a30 30 0 0 1 55 -10 a35 35 0 0 1 65 5 a28 28 0 0 1 35 35 h-160 a25 25 0 0 1 5 -30 z"/>
+        <path d="M980 100 a35 35 0 0 1 65 -12 a40 40 0 0 1 75 8 a30 30 0 0 1 38 38 h-185 a28 28 0 0 1 7 -34 z"/>
+      </g>
+      <!-- Colinas del bosque -->
+      <path d="M0 440 Q 360 350 720 430 T 1440 410 L 1440 900 L 0 900 Z" fill="#86efac"/>
+      <path d="M0 510 Q 480 440 960 510 T 1440 480 L 1440 900 L 0 900 Z" fill="#4ade80"/>
+      <!-- Pinos decorativos -->
+      <g transform="translate(70, 390)">
+        <rect x="22" y="70" width="16" height="35" fill="#78350f"/>
+        <polygon points="30,0 0,45 60,45" fill="#15803d"/>
+        <polygon points="30,25 -5,75 65,75" fill="#166534"/>
+      </g>
+      <g transform="translate(1310, 370) scale(1.2)">
+        <rect x="22" y="70" width="16" height="35" fill="#78350f"/>
+        <polygon points="30,0 0,45 60,45" fill="#15803d"/>
+        <polygon points="30,25 -5,75 65,75" fill="#166534"/>
+      </g>
+    </svg>
+  </div>
+
+  <!-- BARRA SUPERIOR HUD (Navegación, Gemas, Estrellas, Audio y Voz) -->
+  <header class="relative z-20 w-full max-w-6xl mx-auto px-3 pt-3 pb-1">
+    <div class="bg-white/95 backdrop-blur-md rounded-3xl px-4 py-2.5 shadow-lg border-4 border-amber-300 flex flex-wrap items-center justify-between gap-2">
+      <!-- Logo y Botón Mapa -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <button id="btn-home" onclick="goToMap()" class="btn-game bg-amber-400 hover:bg-amber-300 text-amber-950 font-display font-bold px-3.5 py-2 rounded-2xl flex items-center gap-2 text-sm sm:text-base border-2 border-amber-500" title="Volver al Mapa">
+          <span class="text-xl">🗺️</span>
+          <span class="hidden sm:inline">Mapa</span>
+        </button>
+        <div class="flex items-center gap-2">
+          <div class="w-10 h-10 rounded-2xl bg-indigo-600 flex items-center justify-center text-white font-display font-bold text-xl shadow-inner border-2 border-indigo-300">
+            5
+          </div>
+          <div>
+            <h1 class="font-display font-bold text-base sm:text-xl text-slate-800 leading-tight">Ninja de los Números</h1>
+            <p class="text-xs font-bold text-emerald-600">1° Básico • Bosque Mágico</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Indicadores de Progreso (Estrellas y Gemas) -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <div class="bg-amber-100 border-2 border-amber-300 px-3 py-1.5 rounded-2xl flex items-center gap-1.5 shadow-inner">
+          <span class="text-xl">⭐</span>
+          <span id="hud-stars" class="font-display font-bold text-amber-800 text-base sm:text-lg">0 / 24</span>
+        </div>
+        <div class="bg-cyan-100 border-2 border-cyan-300 px-3 py-1.5 rounded-2xl flex items-center gap-1.5 shadow-inner">
+          <span class="text-xl">💎</span>
+          <span id="hud-gems" class="font-display font-bold text-cyan-800 text-base sm:text-lg">0</span>
+        </div>
+        <!-- Botón de Sonido FX -->
+        <button id="btn-mute" onclick="toggleMute()" class="btn-game bg-slate-100 hover:bg-slate-200 text-slate-700 p-2.5 rounded-2xl border-2 border-slate-300 text-lg" title="Activar/Silenciar efectos de sonido">
+          🔔
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENEDOR PRINCIPAL -->
+  <main id="app-container" class="relative z-10 flex-1 w-full max-w-6xl mx-auto px-3 py-3 flex flex-col justify-center">
+    <!-- Las vistas (Portada, Mapa o Nivel Activo) se renderizan dinámicamente aquí -->
+  </main>
+
+  <!-- MODAL DE RETROALIMENTACIÓN / CELEBRACIÓN DE NIVEL -->
+  <div id="feedback-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div id="feedback-card" class="bg-white rounded-[2rem] max-w-md w-full p-6 sm:p-8 text-center border-8 border-amber-300 shadow-2xl animate-pop">
+      <div id="feedback-emoji" class="text-7xl mb-3 animate-bounce">🎉</div>
+      <h2 id="feedback-title" class="font-display font-bold text-3xl text-slate-800 mb-2">¡Excelente trabajo!</h2>
+      <div id="feedback-stars" class="flex justify-center gap-2 text-4xl my-3"></div>
+      <p id="feedback-msg" class="text-lg font-bold text-slate-600 mb-6">¡Eres un verdadero Ninja Matemático!</p>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <button id="feedback-btn-secondary" onclick="closeModal()" class="btn-game bg-slate-200 text-slate-800 font-display font-bold text-lg px-6 py-3 rounded-2xl border-2 border-slate-300 hidden">
+          Repetir
+        </button>
+        <button id="feedback-btn-primary" onclick="handleModalPrimary()" class="btn-game bg-emerald-500 text-white font-display font-bold text-xl px-8 py-3.5 rounded-2xl border-2 border-emerald-600 w-full sm:w-auto">
+          ¡Continuar! 🚀
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DIPLOMA FINAL -->
+  <div id="diploma-modal" class="fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-sm hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-amber-50 rounded-[2rem] max-w-2xl w-full p-6 sm:p-8 text-center border-8 border-amber-400 shadow-2xl animate-pop relative">
+      <div class="border-4 border-dashed border-amber-500 rounded-2xl p-5 sm:p-7 bg-white">
+        <div class="flex justify-center items-center gap-3 mb-2">
+          <span class="text-4xl">🏆</span>
+          <span class="bg-amber-400 text-amber-950 font-display font-bold px-4 py-1 rounded-full text-sm uppercase tracking-wider">Primero Básico • Chile</span>
+          <span class="text-4xl">🥷</span>
+        </div>
+        <h2 class="font-display font-bold text-3xl sm:text-4xl text-indigo-700 mb-2">¡DIPLOMA DE MAESTRO NINJA!</h2>
+        <p class="text-slate-600 font-bold text-base sm:text-lg mb-4">Se otorga este reconocimiento matemático a:</p>
+        <input id="student-name-input" type="text" placeholder="Escribe tu nombre aquí..." maxlength="28"
+          class="w-full max-w-md mx-auto text-center font-display font-bold text-2xl sm:text-3xl text-emerald-700 bg-emerald-50 border-b-4 border-emerald-400 rounded-xl px-4 py-2 mb-4 focus:outline-none focus:bg-emerald-100" />
+        <p class="text-slate-700 font-semibold text-sm sm:text-base max-w-lg mx-auto mb-5">
+          Por superar con éxito todos los desafíos del Bosque Mágico: Conteo, Decenas y Unidades, Comparación con Cocodrilos, Sumas, Restas, Ubicación Espacial y Pictogramas.
+        </p>
+        <div class="flex justify-center gap-6 items-center mb-4">
+          <div class="bg-amber-100 px-4 py-2 rounded-2xl border-2 border-amber-300">
+            <div class="text-xs font-bold text-amber-800">ESTRELLAS</div>
+            <div id="diploma-stars" class="font-display font-bold text-2xl text-amber-600">24 / 24 ⭐</div>
+          </div>
+          <div class="bg-cyan-100 px-4 py-2 rounded-2xl border-2 border-cyan-300">
+            <div class="text-xs font-bold text-cyan-800">GEMAS NINJA</div>
+            <div id="diploma-gems" class="font-display font-bold text-2xl text-cyan-600">120 💎</div>
+          </div>
+        </div>
+      </div>
+      <div class="flex flex-wrap justify-center gap-3 mt-5">
+        <button onclick="window.print()" class="btn-game bg-indigo-500 text-white font-display font-bold text-lg px-6 py-3 rounded-2xl border-2 border-indigo-600">
+          🖨️ Imprimir Diploma
+        </button>
+        <button onclick="closeDiploma()" class="btn-game bg-emerald-500 text-white font-display font-bold text-lg px-6 py-3 rounded-2xl border-2 border-emerald-600">
+          Volver al Mapa 🗺️
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ==========================================================================
+       1. SISTEMA DE AUDIO SINTETIZADO (WEB AUDIO API) Y NARRADOR POR VOZ
+       ========================================================================== */
+    const AudioEngine = {
+      ctx: null,
+      muted: false,
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      },
+      playTone(freq, type = 'sine', duration = 0.15, delay = 0, gainVal = 0.2) {
+        if (this.muted) return;
+        try {
+          this.init();
+          if (!this.ctx) return;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime + delay);
+          gain.gain.setValueAtTime(gainVal, this.ctx.currentTime + delay);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + delay + duration);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(this.ctx.currentTime + delay);
+          osc.stop(this.ctx.currentTime + delay + duration);
+        } catch (e) {}
+      },
+      click() {
+        this.playTone(520, 'triangle', 0.08, 0, 0.15);
+      },
+      pop() {
+        this.playTone(680, 'sine', 0.1, 0, 0.18);
+      },
+      success() {
+        this.playTone(523.25, 'triangle', 0.14, 0, 0.22);    // C5
+        this.playTone(659.25, 'triangle', 0.14, 0.1, 0.22);  // E5
+        this.playTone(783.99, 'triangle', 0.25, 0.2, 0.25);  // G5
+        this.playTone(1046.50, 'sine', 0.35, 0.32, 0.22);    // C6
+      },
+      error() {
+        this.playTone(260, 'sawtooth', 0.18, 0, 0.14);
+        this.playTone(210, 'sawtooth', 0.25, 0.14, 0.14);
+      },
+      levelWin() {
+        const notes = [523.25, 659.25, 783.99, 1046.50, 783.99, 1046.50];
+        notes.forEach((n, i) => {
+          this.playTone(n, 'triangle', 0.18, i * 0.11, 0.24);
+        });
+      }
+    };
+
+    function toggleMute() {
+      AudioEngine.muted = !AudioEngine.muted;
+      const btn = document.getElementById('btn-mute');
+      btn.textContent = AudioEngine.muted ? '🔇' : '🔔';
+      if (!AudioEngine.muted) AudioEngine.click();
+    }
+
+    // Narración por voz en español para niños que están aprendiendo a leer
+    function speakText(text) {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'es-CL';
+      utterance.rate = 0.92;
+      utterance.pitch = 1.15;
+      const voices = window.speechSynthesis.getVoices();
+      const esVoice = voices.find(v => v.lang.includes('es-CL')) ||
+                      voices.find(v => v.lang.includes('es-MX')) ||
+                      voices.find(v => v.lang.includes('es-ES')) ||
+                      voices.find(v => v.lang.startsWith('es'));
+      if (esVoice) utterance.voice = esVoice;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+    }
+
+    /* ==========================================================================
+       2. ILUSTRACIONES SVG PERSONALIZADAS (MASCOTA NINJA, COCODRILOS, ÁRBOLES, COMIDA)
+       ========================================================================== */
+    const SVGAssets = {
+      // Mascota Ninja de los Números (inspirada en la portada de la guía)
+      ninjaMascot: (mood = 'happy') => `
+        <svg viewBox="0 0 140 140" class="w-20 h-20 sm:w-24 sm:h-24 drop-shadow-md animate-float shrink-0">
+          <!-- Cinta ninja flotando -->
+          <path d="M25 55 Q 5 45 10 30 Q 25 40 35 50 Z" fill="#ef4444"/>
+          <path d="M25 62 Q 2 65 8 78 Q 22 72 35 60 Z" fill="#dc2626"/>
+          <!-- Cuerpo -->
+          <rect x="42" y="88" width="56" height="42" rx="18" fill="#1e293b"/>
+          <path d="M42 96 L98 118" stroke="#ef4444" stroke-width="7"/>
+          <path d="M98 96 L42 118" stroke="#ef4444" stroke-width="7"/>
+          <!-- Cabeza y capucha -->
+          <circle cx="70" cy="54" r="38" fill="#1e293b"/>
+          <!-- Cinta frontal -->
+          <path d="M33 43 Q 70 36 107 43 L105 52 Q 70 45 35 52 Z" fill="#ef4444"/>
+          <rect x="61" y="38" width="18" height="12" rx="4" fill="#cbd5e1"/>
+          <!-- Rostro visible -->
+          <rect x="44" y="49" width="52" height="22" rx="11" fill="#fde68a"/>
+          <!-- Ojos expresivos -->
+          ${mood === 'celebrate' ? `
+            <path d="M51 60 Q 57 52 63 60" stroke="#1e293b" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <path d="M77 60 Q 83 52 89 60" stroke="#1e293b" stroke-width="4" fill="none" stroke-linecap="round"/>
+          ` : `
+            <circle cx="57" cy="59" r="5" fill="#1e293b"/>
+            <circle cx="83" cy="59" r="5" fill="#1e293b"/>
+            <circle cx="59" cy="57" r="1.8" fill="#ffffff"/>
+            <circle cx="85" cy="57" r="1.8" fill="#ffffff"/>
+          `}
+          <!-- Mejillas -->
+          <ellipse cx="49" cy="64" rx="4" ry="2.5" fill="#f87171" opacity="0.7"/>
+          <ellipse cx="91" cy="64" rx="4" ry="2.5" fill="#f87171" opacity="0.7"/>
+          <!-- Estrellita ninja en mano -->
+          <g transform="translate(112, 85)">
+            <polygon points="0,-14 4,-4 14,0 4,4 0,14 -4,4 -14,0 -4,-4" fill="#94a3b8" stroke="#475569" stroke-width="1.5"/>
+            <circle cx="0" cy="0" r="3" fill="#ffffff"/>
+          </g>
+        </svg>
+      `,
+
+      // Número 5 con ojitos (de la portada de Evaluación Unidad 3)
+      numberFiveCharacter: () => `
+        <svg viewBox="0 0 110 130" class="w-20 h-24 drop-shadow-md animate-float">
+          <path d="M85 15 H32 L25 58 Q48 48 72 56 Q96 66 92 92 Q88 118 55 118 Q28 118 18 100 L34 88 Q42 98 55 98 Q71 98 72 85 Q73 72 54 71 Q38 70 25 78 L12 72 L20 10 H85 Z"
+                fill="#3b82f6" stroke="#1d4ed8" stroke-width="4" stroke-linejoin="round"/>
+          <!-- Ojitos arriba del 5 -->
+          <circle cx="48" cy="27" r="11" fill="#ffffff" stroke="#1e293b" stroke-width="2.5"/>
+          <circle cx="68" cy="27" r="11" fill="#ffffff" stroke="#1e293b" stroke-width="2.5"/>
+          <circle cx="51" cy="27" r="5" fill="#1e293b"/>
+          <circle cx="71" cy="27" r="5" fill="#1e293b"/>
+        </svg>
+      `,
+
+      // Árbol con N manzanas posicionadas claramente para contar (Nivel 2A)
+      appleTree: (count) => {
+        const coords = [
+          [75, 42], [115, 38], [52, 68], [95, 65], [138, 66],
+          [42, 98], [76, 95], [112, 96], [148, 98], [62, 124],
+          [96, 122], [130, 124], [80, 146], [114, 145], [97, 80],
+          [56, 48], [134, 48], [36, 82], [154, 82], [95, 110]
+        ];
+        const apples = coords.slice(0, count).map(([cx, cy], idx) => `
+          <g class="apple-item" style="animation-delay: ${idx * 35}ms">
+            <circle cx="${cx}" cy="${cy}" r="9.5" fill="#ef4444" stroke="#991b1b" stroke-width="1.8"/>
+            <circle cx="${cx - 2.5}" cy="${cy - 2.5}" r="2.5" fill="#fca5a5"/>
+            <path d="M${cx} ${cy - 9} Q${cx + 4} ${cy - 15} ${cx + 8} ${cy - 11}" stroke="#15803d" stroke-width="2.3" fill="none"/>
+          </g>
+        `).join('');
+
+        return `
+          <svg viewBox="0 0 190 220" class="w-44 h-52 sm:w-52 sm:h-60 mx-auto drop-shadow">
+            <!-- Césped -->
+            <ellipse cx="95" cy="205" rx="68" ry="11" fill="#84cc16"/>
+            <!-- Tronco -->
+            <path d="M82 205 L85 135 L68 112 L76 106 L90 124 L95 100 L103 100 L101 126 L118 108 L124 114 L106 138 L110 205 Z" fill="#78350f" stroke="#451a03" stroke-width="2"/>
+            <!-- Copa frondosa -->
+            <path d="M40 135 Q15 125 22 95 Q12 65 42 52 Q52 20 95 20 Q138 20 148 52 Q178 65 168 95 Q175 125 150 135 Q130 158 95 155 Q60 158 40 135 Z"
+                  fill="#22c55e" stroke="#15803d" stroke-width="3"/>
+            ${apples}
+          </svg>
+        `;
+      },
+
+      // Cocodrilo Hambriento (<, >, =) para Nivel 3
+      crocodile: (sign) => {
+        if (sign === '=') {
+          return `
+            <svg viewBox="0 0 130 110" class="w-24 h-20 sm:w-28 sm:h-24 mx-auto">
+              <rect x="18" y="25" width="94" height="22" rx="10" fill="#22c55e" stroke="#14532d" stroke-width="3"/>
+              <rect x="18" y="62" width="94" height="22" rx="10" fill="#22c55e" stroke="#14532d" stroke-width="3"/>
+              <circle cx="45" cy="20" r="9" fill="#86efac" stroke="#14532d" stroke-width="2.5"/>
+              <circle cx="45" cy="20" r="4" fill="#0f172a"/>
+              <circle cx="85" cy="20" r="9" fill="#86efac" stroke="#14532d" stroke-width="2.5"/>
+              <circle cx="85" cy="20" r="4" fill="#0f172a"/>
+              <text x="65" y="61" text-anchor="middle" font-family="Fredoka" font-weight="bold" font-size="28" fill="#14532d">=</text>
+            </svg>
+          `;
+        }
+        // '<' abre hacia la derecha (come el de la derecha), '>' abre hacia la izquierda (come el de la izquierda)
+        const flip = sign === '>' ? 'transform="scale(-1, 1) translate(-130, 0)"' : '';
+        return `
+          <svg viewBox="0 0 130 110" class="w-24 h-20 sm:w-28 sm:h-24 mx-auto">
+            <g ${flip}>
+              <!-- Cabeza trasera -->
+              <rect x="8" y="34" width="42" height="42" rx="16" fill="#16a34a" stroke="#14532d" stroke-width="3"/>
+              <!-- Ojo arriba -->
+              <circle cx="34" cy="26" r="11" fill="#86efac" stroke="#14532d" stroke-width="3"/>
+              <circle cx="37" cy="26" r="5" fill="#0f172a"/>
+              <circle cx="39" cy="24" r="1.8" fill="#ffffff"/>
+              <!-- Mandíbula superior -->
+              <path d="M38 45 L118 16 L112 34 L45 55 Z" fill="#22c55e" stroke="#14532d" stroke-width="3" stroke-linejoin="round"/>
+              <!-- Mandíbula inferior -->
+              <path d="M38 65 L118 94 L112 76 L45 55 Z" fill="#22c55e" stroke="#14532d" stroke-width="3" stroke-linejoin="round"/>
+              <!-- Dientes blancos -->
+              <polygon points="62,48 68,56 74,44" fill="#ffffff" stroke="#14532d" stroke-width="1.5"/>
+              <polygon points="84,40 90,49 96,36" fill="#ffffff" stroke="#14532d" stroke-width="1.5"/>
+              <polygon points="62,62 68,54 74,66" fill="#ffffff" stroke="#14532d" stroke-width="1.5"/>
+              <polygon points="84,70 90,61 96,74" fill="#ffffff" stroke="#14532d" stroke-width="1.5"/>
+              <!-- Signo amarillo resaltado dentro de la boca -->
+              <path d="M105 26 L48 55 L105 84" stroke="#facc15" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+          </svg>
+        `;
+      },
+
+      // Escena de Ubicación Espacial (Girasol, Árbol, Hormiga, Nube, Mariposa - Nivel 5A)
+      forestScene: () => `
+        <svg viewBox="0 0 420 240" class="w-full max-w-lg mx-auto rounded-3xl border-4 border-emerald-300 bg-gradient-to-b from-sky-200 via-sky-100 to-lime-200 shadow-inner">
+          <!-- Pradera -->
+          <ellipse cx="210" cy="200" rx="195" ry="34" fill="#84cc16" stroke="#65a30d" stroke-width="2"/>
+          <!-- Nube ARRIBA del árbol -->
+          <g transform="translate(185, 16)">
+            <path d="M15 28 a14 14 0 0 1 25 -5 a16 16 0 0 1 30 3 a12 12 0 0 1 14 16 h-72 a12 12 0 0 1 3 -14 z" fill="#ffffff" stroke="#93c5fd" stroke-width="2"/>
+          </g>
+          <!-- Girasol a la IZQUIERDA del árbol -->
+          <g transform="translate(88, 92)">
+            <line x1="25" y1="35" x2="25" y2="105" stroke="#15803d" stroke-width="5" stroke-linecap="round"/>
+            <ellipse cx="14" cy="68" rx="11" ry="6" transform="rotate(-25 14 68)" fill="#22c55e" stroke="#14532d" stroke-width="1.5"/>
+            <ellipse cx="36" cy="78" rx="11" ry="6" transform="rotate(25 36 78)" fill="#22c55e" stroke="#14532d" stroke-width="1.5"/>
+            <!-- Pétalos -->
+            <circle cx="25" cy="25" r="21" fill="#facc15" stroke="#ca8a04" stroke-width="2" stroke-dasharray="6 3"/>
+            <circle cx="25" cy="25" r="12" fill="#78350f"/>
+            <circle cx="22" cy="23" r="1.5" fill="#fef08a"/>
+            <circle cx="28" cy="23" r="1.5" fill="#fef08a"/>
+            <path d="M21 28 Q25 32 29 28" stroke="#fef08a" stroke-width="1.5" fill="none"/>
+          </g>
+          <!-- Árbol en el CENTRO -->
+          <g transform="translate(160, 48)">
+            <path d="M42 150 L45 92 L28 74 L35 68 L48 82 L50 62 L57 62 L56 84 L72 70 L78 75 L60 95 L64 150 Z" fill="#92400e" stroke="#451a03" stroke-width="2"/>
+            <path d="M16 88 Q-2 80 4 58 Q-4 36 18 26 Q26 4 53 4 Q80 4 88 26 Q110 36 102 58 Q108 80 90 88 Q74 104 53 102 Q32 104 16 88 Z" fill="#4ade80" stroke="#166534" stroke-width="2.5"/>
+          </g>
+          <!-- Hormiga DEBAJO del árbol -->
+          <g transform="translate(215, 192)">
+            <ellipse cx="12" cy="14" rx="7" ry="5" fill="#dc2626" stroke="#450a0a" stroke-width="1.5"/>
+            <ellipse cx="23" cy="13" rx="5" ry="4" fill="#dc2626" stroke="#450a0a" stroke-width="1.5"/>
+            <circle cx="32" cy="11" r="4.5" fill="#dc2626" stroke="#450a0a" stroke-width="1.5"/>
+            <path d="M34 7 L40 1 M31 7 L34 0" stroke="#450a0a" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M12 18 L9 25 M20 17 L19 25 M26 16 L28 24" stroke="#450a0a" stroke-width="1.8" stroke-linecap="round"/>
+          </g>
+          <!-- Mariposa a la DERECHA del árbol -->
+          <g transform="translate(312, 102)">
+            <ellipse cx="14" cy="14" rx="11" ry="8" transform="rotate(-25 14 14)" fill="#f472b6" stroke="#9d174d" stroke-width="1.5"/>
+            <ellipse cx="32" cy="14" rx="11" ry="8" transform="rotate(25 32 14)" fill="#f472b6" stroke="#9d174d" stroke-width="1.5"/>
+            <ellipse cx="15" cy="25" rx="8" ry="6" transform="rotate(20 15 25)" fill="#fbcfe8" stroke="#9d174d" stroke-width="1.5"/>
+            <ellipse cx="31" cy="25" rx="8" ry="6" transform="rotate(-20 31 25)" fill="#fbcfe8" stroke="#9d174d" stroke-width="1.5"/>
+            <rect x="21" y="8" width="4" height="22" rx="2" fill="#1e293b"/>
+            <path d="M22 8 L17 2 M24 8 L29 2" stroke="#1e293b" stroke-width="1.5"/>
+          </g>
+        </svg>
+      `,
+
+      // Iconos de comida para el Pictograma (Nivel 6)
+      foodIcon: (type) => {
+        const icons = {
+          fries: `<svg viewBox="0 0 64 64" class="w-11 h-11 inline-block"><rect x="18" y="8" width="6" height="26" rx="2" fill="#facc15" stroke="#ca8a04" stroke-width="1.5"/><rect x="26" y="5" width="6" height="28" rx="2" fill="#fde047" stroke="#ca8a04" stroke-width="1.5"/><rect x="34" y="7" width="6" height="26" rx="2" fill="#facc15" stroke="#ca8a04" stroke-width="1.5"/><rect x="41" y="11" width="6" height="24" rx="2" fill="#eab308" stroke="#ca8a04" stroke-width="1.5"/><path d="M14 26 L50 26 L45 56 L19 56 Z" fill="#ef4444" stroke="#991b1b" stroke-width="2"/><circle cx="32" cy="41" r="6" fill="#facc15"/></svg>`,
+          fruit: `<svg viewBox="0 0 64 64" class="w-11 h-11 inline-block"><path d="M32 18 C22 14 12 22 14 36 C16 50 26 56 32 54 C38 56 48 50 50 36 C52 22 42 14 32 18 Z" fill="#ef4444" stroke="#991b1b" stroke-width="2"/><path d="M32 18 L34 9" stroke="#78350f" stroke-width="3" stroke-linecap="round"/><ellipse cx="40" cy="12" rx="7" ry="4" transform="rotate(-20 40 12)" fill="#22c55e" stroke="#15803d" stroke-width="1.5"/></svg>`,
+          salad: `<svg viewBox="0 0 64 64" class="w-11 h-11 inline-block"><circle cx="22" cy="26" r="10" fill="#4ade80" stroke="#15803d" stroke-width="1.5"/><circle cx="42" cy="26" r="10" fill="#22c55e" stroke="#15803d" stroke-width="1.5"/><circle cx="32" cy="23" r="10" fill="#86efac" stroke="#15803d" stroke-width="1.5"/><circle cx="26" cy="28" r="5" fill="#ef4444"/><circle cx="38" cy="28" r="5" fill="#ef4444"/><path d="M10 32 Q12 54 32 54 Q52 54 54 32 Z" fill="#d97706" stroke="#78350f" stroke-width="2"/></svg>`,
+          chocolate: `<svg viewBox="0 0 64 64" class="w-11 h-11 inline-block"><rect x="16" y="10" width="32" height="44" rx="4" fill="#5c2d16" stroke="#291207" stroke-width="2"/><line x1="32" y1="10" x2="32" y2="54" stroke="#291207" stroke-width="2"/><line x1="16" y1="25" x2="48" y2="25" stroke="#291207" stroke-width="2"/><line x1="16" y1="40" x2="48" y2="40" stroke="#291207" stroke-width="2"/></svg>`
+        };
+        return icons[type] || '';
+      }
+    };
+
+    /* ==========================================================================
+       3. CONFIGURACIÓN DE LOS 8 NIVELES Y ESTADO DEL JUEGO
+       ========================================================================== */
+    const LEVELS_META = [
+      {
+        id: 1,
+        title: 'Barras de Cubitos',
+        subtitle: 'Representar hasta 20',
+        oa: 'OA 7 • Unidad 3',
+        icon: '🧱',
+        color: 'from-amber-400 to-orange-500',
+        border: 'border-orange-600',
+        totalRounds: 6
+      },
+      {
+        id: 2,
+        title: 'Huerto y Caramelos',
+        subtitle: 'Conteo, Antecesor y Sucesor',
+        oa: 'OA 7 • Unidad 3',
+        icon: '🍎',
+        color: 'from-rose-400 to-red-500',
+        border: 'border-red-600',
+        totalRounds: 6
+      },
+      {
+        id: 3,
+        title: 'Cocodrilo Hambriento',
+        subtitle: 'Mayor, Menor e Igual (> < =)',
+        oa: 'OA 12 • Unidad 3',
+        icon: '🐊',
+        color: 'from-emerald-400 to-green-600',
+        border: 'border-green-700',
+        totalRounds: 6
+      },
+      {
+        id: 4,
+        title: 'Marcos de 10',
+        subtitle: 'Sumas, Restas y Descomposición',
+        oa: 'OA 9 y OA 10 • Unidad 3',
+        icon: '➕',
+        color: 'from-sky-400 to-blue-600',
+        border: 'border-blue-700',
+        totalRounds: 6
+      },
+      {
+        id: 5,
+        title: 'Exploradores del Bosque',
+        subtitle: 'Izquierda, Derecha, Arriba y Abajo',
+        oa: 'OA 13 • Unidad 4',
+        icon: '🧭',
+        color: 'from-teal-400 to-emerald-600',
+        border: 'border-teal-700',
+        totalRounds: 6
+      },
+      {
+        id: 6,
+        title: 'Pictograma Sabroso',
+        subtitle: 'Leer e Interpretar Datos',
+        oa: 'OA 20 • Unidad 4',
+        icon: '📊',
+        color: 'from-purple-400 to-indigo-600',
+        border: 'border-indigo-700',
+        totalRounds: 6
+      },
+      {
+        id: 7,
+        title: 'Historias Matemáticas',
+        subtitle: 'Problemas de Suma y Resta',
+        oa: 'OA 9 • Unidades 3 y 4',
+        icon: '📖',
+        color: 'from-pink-400 to-rose-600',
+        border: 'border-rose-700',
+        totalRounds: 6
+      },
+      {
+        id: 8,
+        title: 'Desafío Maestro Ninja',
+        subtitle: 'Crear y Resolver hasta 20',
+        oa: 'OA 9 • Gran Final',
+        icon: '🏆',
+        color: 'from-yellow-400 to-amber-500',
+        border: 'border-amber-600',
+        totalRounds: 6
+      }
+    ];
+
+    // Estado persistente en localStorage
+    const GameState = {
+      screen: 'welcome', // 'welcome' | 'map' | 'level'
+      stars: {},         // { 1: 3, 2: 2, ... }
+      gems: 0,
+      currentLevel: 1,
+      currentRound: 0,
+      roundMistakes: 0,
+      levelScore: 0,
+      roundData: null,
+
+      load() {
+        try {
+          const saved = JSON.parse(localStorage.getItem('ninja_matematico_1b_v1'));
+          if (saved) {
+            this.stars = saved.stars || {};
+            this.gems = saved.gems || 0;
+          }
+        } catch (e) {}
+        this.updateHUD();
+      },
+      save() {
+        try {
+          localStorage.setItem('ninja_matematico_1b_v1', JSON.stringify({
+            stars: this.stars,
+            gems: this.gems
+          }));
+        } catch (e) {}
+        this.updateHUD();
+      },
+      totalStars() {
+        return Object.values(this.stars).reduce((a, b) => a + b, 0);
+      },
+      updateHUD() {
+        const starsEl = document.getElementById('hud-stars');
+        const gemsEl = document.getElementById('hud-gems');
+        if (starsEl) starsEl.textContent = `${this.totalStars()} / 24`;
+        if (gemsEl) gemsEl.textContent = `${this.gems}`;
+      }
+    };
+
+    /* ==========================================================================
+       4. EFECTO CONFETI PARA CELEBRACIONES
+       ========================================================================== */
+    function launchConfetti(duration = 2500) {
+      const canvas = document.getElementById('confetti-canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      const colors = ['#facc15', '#ef4444', '#3b82f6', '#22c55e', '#a855f7', '#f97316'];
+      const pieces = Array.from({ length: 90 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height - canvas.height,
+        w: Math.random() * 12 + 6,
+        h: Math.random() * 8 + 4,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        vy: Math.random() * 4 + 3,
+        vx: (Math.random() - 0.5) * 3,
+        rot: Math.random() * 360,
+        vrot: (Math.random() - 0.5) * 10
+      }));
+
+      const end = Date.now() + duration;
+      function frame() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pieces.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.rot += p.vrot;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate((p.rot * Math.PI) / 180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+          ctx.restore();
+        });
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
+        } else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+      frame();
+    }
+
+    /* ==========================================================================
+       5. NAVEGACIÓN ENTRE PANTALLAS (PORTADA, MAPA DE AVENTURA Y NIVELES)
+       ========================================================================== */
+    function renderWelcome() {
+      GameState.screen = 'welcome';
+      const container = document.getElementById('app-container');
+      container.innerHTML = `
+        <div class="game-card rounded-[2.5rem] p-6 sm:p-10 text-center max-w-3xl mx-auto my-auto animate-pop">
+          <div class="flex justify-center items-center gap-4 mb-4">
+            ${SVGAssets.numberFiveCharacter()}
+            ${SVGAssets.ninjaMascot('celebrate')}
+          </div>
+          <span class="inline-block bg-amber-200 text-amber-900 font-display font-bold px-4 py-1.5 rounded-full text-sm sm:text-base mb-3 border-2 border-amber-400">
+            Matemáticas • Primero Básico (Unidades 3 y 4)
+          </span>
+          <h1 class="font-display font-bold text-3xl sm:text-5xl text-slate-800 mb-3 leading-tight">
+            ¡Aventura en el <span class="text-emerald-600">Bosque Mágico</span>!
+          </h1>
+          <p class="text-slate-600 font-bold text-base sm:text-xl max-w-xl mx-auto mb-7">
+            Ayuda al Ninja de los Números a superar 8 mundos llenos de cubitos, manzanas, cocodrilos hambrientos, pictogramas y acertijos.
+          </p>
+          <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+            <button onclick="startAdventure()" class="btn-game animate-pulse-glow bg-gradient-to-b from-emerald-400 to-emerald-600 text-white font-display font-bold text-2xl sm:text-3xl px-10 py-4 rounded-3xl border-4 border-emerald-700 flex items-center gap-3">
+              <span>¡JUGAR AHORA!</span>
+              <span>🚀</span>
+            </button>
+            <button onclick="speakText('¡Hola! Bienvenido a la Aventura Matemática en el Bosque Mágico. Presiona el botón verde para comenzar a jugar.')" class="btn-game bg-sky-100 hover:bg-sky-200 text-sky-800 font-display font-bold text-lg px-5 py-4 rounded-3xl border-2 border-sky-300 flex items-center gap-2">
+              <span>🔊</span>
+              <span>Escuchar</span>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function startAdventure() {
+      AudioEngine.init();
+      AudioEngine.success();
+      goToMap();
+      speakText('Elige un mundo en el mapa para comenzar tu aventura.');
+    }
+
+    function goToMap() {
+      AudioEngine.click();
+      GameState.screen = 'map';
+      const totalStars = GameState.totalStars();
+      const container = document.getElementById('app-container');
+
+      const cardsHtml = LEVELS_META.map((lvl) => {
+        const earned = GameState.stars[lvl.id] || 0;
+        const starsDisplay = [1, 2, 3].map(s =>
+          `<span class="text-2xl ${s <= earned ? 'opacity-100 scale-110' : 'opacity-25 grayscale'} transition-all">⭐</span>`
+        ).join('');
+
+        return `
+          <button onclick="startLevel(${lvl.id})"
+            class="btn-game bg-white rounded-3xl p-4 sm:p-5 text-left border-4 ${lvl.border} flex flex-col justify-between relative overflow-hidden group">
+            <div class="flex items-start justify-between gap-2 mb-3">
+              <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br ${lvl.color} text-white flex items-center justify-center text-3xl sm:text-4xl shadow-md border-2 border-white">
+                ${lvl.icon}
+              </div>
+              <span class="bg-slate-100 text-slate-700 font-display font-bold text-xs px-2.5 py-1 rounded-xl border border-slate-200">
+                Nivel ${lvl.id}
+              </span>
+            </div>
+            <div>
+              <h3 class="font-display font-bold text-lg sm:text-xl text-slate-800 leading-snug mb-1 group-hover:text-indigo-600 transition-colors">
+                ${lvl.title}
+              </h3>
+              <p class="text-xs sm:text-sm font-bold text-slate-500 mb-3">${lvl.subtitle}</p>
+            </div>
+            <div class="pt-2 border-t-2 border-slate-100 flex items-center justify-between">
+              <div class="flex gap-1">${starsDisplay}</div>
+              <span class="text-xs font-extrabold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg">${lvl.oa}</span>
+            </div>
+          </button>
+        `;
+      }).join('');
+
+      container.innerHTML = `
+        <div class="animate-pop">
+          <!-- Banner superior del Mapa -->
+          <div class="bg-white/95 rounded-3xl p-4 sm:p-5 mb-4 border-4 border-emerald-400 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              ${SVGAssets.ninjaMascot('happy')}
+              <div>
+                <h2 class="font-display font-bold text-2xl sm:text-3xl text-slate-800">Mapa del Bosque Mágico</h2>
+                <p class="text-sm sm:text-base font-bold text-slate-600">¡Toca cualquier nivel para entrenar tus poderes ninjas!</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="openDiploma()" class="btn-game bg-gradient-to-r from-amber-400 to-yellow-500 text-amber-950 font-display font-bold px-4 py-2.5 rounded-2xl border-2 border-amber-600 flex items-center gap-2 text-sm sm:text-base">
+                <span>🏆</span>
+                <span>Mi Diploma (${totalStars}/24 ⭐)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Cuadrícula de los 8 Mundos -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+            ${cardsHtml}
+          </div>
+        </div>
+      `;
+    }
+
+    function openDiploma() {
+      AudioEngine.levelWin();
+      document.getElementById('diploma-stars').textContent = `${GameState.totalStars()} / 24 ⭐`;
+      document.getElementById('diploma-gems').textContent = `${GameState.gems} 💎`;
+      const modal = document.getElementById('diploma-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      launchConfetti(2000);
+    }
+
+    function closeDiploma() {
+      AudioEngine.click();
+      const modal = document.getElementById('diploma-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    /* ==========================================================================
+       6. MOTOR DE NIVELES Y ACTIVIDADES EDUCATIVAS (8 MUNDOS COMPLETOS)
+       ========================================================================== */
+    function startLevel(levelId) {
+      AudioEngine.click();
+      GameState.screen = 'level';
+      GameState.currentLevel = levelId;
+      GameState.currentRound = 0;
+      GameState.levelScore = 0;
+      loadRound();
+    }
+
+    function loadRound() {
+      const meta = LEVELS_META.find(l => l.id === GameState.currentLevel);
+      if (GameState.currentRound >= meta.totalRounds) {
+        finishLevel();
+        return;
+      }
+      GameState.roundMistakes = 0;
+      const r = GameState.currentRound;
+
+      switch (GameState.currentLevel) {
+        case 1: setupLevel1(r); break;
+        case 2: setupLevel2(r); break;
+        case 3: setupLevel3(r); break;
+        case 4: setupLevel4(r); break;
+        case 5: setupLevel5(r); break;
+        case 6: setupLevel6(r); break;
+        case 7: setupLevel7(r); break;
+        case 8: setupLevel8(r); break;
+      }
+    }
+
+    // Plantilla común para envolver cada actividad con cabecera, barra de progreso y botón de voz
+    function renderLevelShell(instructionText, voiceText, innerHtml) {
+      const meta = LEVELS_META.find(l => l.id === GameState.currentLevel);
+      const progressPct = Math.round((GameState.currentRound / meta.totalRounds) * 100);
+      const container = document.getElementById('app-container');
+
+      container.innerHTML = `
+        <div class="game-card rounded-[2rem] p-4 sm:p-6 max-w-4xl w-full mx-auto animate-pop">
+          <!-- Cabecera de Nivel y Barra de Progreso -->
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-4 border-b-4 border-slate-100">
+            <div class="flex items-center gap-2">
+              <span class="text-2xl sm:text-3xl">${meta.icon}</span>
+              <div>
+                <span class="text-xs font-extrabold uppercase tracking-wider text-indigo-600">Nivel ${meta.id} • ${meta.oa}</span>
+                <h2 class="font-display font-bold text-lg sm:text-2xl text-slate-800 leading-none">${meta.title}</h2>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 flex-1 max-w-xs">
+              <div class="w-full bg-slate-200 h-4 rounded-full overflow-hidden border-2 border-slate-300">
+                <div class="bg-gradient-to-r from-emerald-400 to-green-500 h-full transition-all duration-500" style="width: ${progressPct}%"></div>
+              </div>
+              <span class="font-display font-bold text-xs sm:text-sm text-slate-700 whitespace-nowrap">Actividad ${GameState.currentRound + 1} de ${meta.totalRounds}</span>
+            </div>
+          </div>
+
+          <!-- Guía Ninja + Instrucción + Botón Escuchar -->
+          <div class="bg-amber-50 border-3 border-amber-300 rounded-3xl p-3 sm:p-4 mb-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-3 text-center sm:text-left">
+              ${SVGAssets.ninjaMascot('happy')}
+              <p id="instruction-banner" class="font-display font-bold text-lg sm:text-2xl text-slate-800 leading-snug">
+                ${instructionText}
+              </p>
+            </div>
+            <button onclick="speakText('${voiceText.replace(/'/g, "\\'")}')"
+              class="btn-game bg-sky-500 hover:bg-sky-400 text-white font-display font-bold px-4 py-2.5 rounded-2xl border-2 border-sky-600 flex items-center gap-2 shrink-0 text-base sm:text-lg">
+              <span>🔊</span>
+              <span>Escuchar</span>
+            </button>
+          </div>
+
+          <!-- Área Interactiva del Ejercicio -->
+          <div id="exercise-area" class="min-h-[260px] flex flex-col justify-center">
+            ${innerHtml}
+          </div>
+        </div>
+      `;
+
+      // Leer automáticamente la primera vez o suavemente
+      setTimeout(() => speakText(voiceText), 250);
+    }
+
+    // Retroalimentación al acertar una ronda
+    function handleRoundSuccess(customPraise = '¡Muy bien! ¡Lo lograste!') {
+      AudioEngine.success();
+      const gemsEarned = GameState.roundMistakes === 0 ? 5 : 3;
+      GameState.gems += gemsEarned;
+      if (GameState.roundMistakes === 0) GameState.levelScore++;
+      GameState.save();
+
+      const area = document.getElementById('exercise-area');
+      area.innerHTML = `
+        <div class="text-center py-8 animate-pop">
+          <div class="text-7xl mb-3 animate-bounce">🌟</div>
+          <h3 class="font-display font-bold text-3xl text-emerald-600 mb-2">${customPraise}</h3>
+          <p class="font-bold text-lg text-amber-600 mb-6">+${gemsEarned} Gemas Ninja 💎</p>
+          <button onclick="nextRound()" class="btn-game bg-emerald-500 text-white font-display font-bold text-2xl px-8 py-3.5 rounded-2xl border-2 border-emerald-700">
+            Siguiente Desafío ➡️
+          </button>
+        </div>
+      `;
+      speakText(customPraise);
+    }
+
+    function handleRoundError(hintText = '¡Ups! Inténtalo otra vez, tú puedes.') {
+      AudioEngine.error();
+      GameState.roundMistakes++;
+      const area = document.getElementById('exercise-area');
+      area.classList.remove('animate-shake');
+      void area.offsetWidth;
+      area.classList.add('animate-shake');
+      speakText(hintText);
+
+      let toast = document.getElementById('error-toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'error-toast';
+        toast.className = 'mt-4 bg-rose-100 border-2 border-rose-400 text-rose-800 font-bold px-4 py-2.5 rounded-2xl text-center animate-pop';
+        area.appendChild(toast);
+      }
+      toast.innerHTML = `💡 ${hintText}`;
+    }
+
+    function nextRound() {
+      AudioEngine.click();
+      GameState.currentRound++;
+      loadRound();
+    }
+
+    function finishLevel() {
+      AudioEngine.levelWin();
+      launchConfetti(3000);
+      const meta = LEVELS_META.find(l => l.id === GameState.currentLevel);
+      const ratio = GameState.levelScore / meta.totalRounds;
+      const earnedStars = ratio >= 0.8 ? 3 : ratio >= 0.5 ? 2 : 1;
+      const prevStars = GameState.stars[meta.id] || 0;
+      if (earnedStars > prevStars) {
+        GameState.stars[meta.id] = earnedStars;
+      }
+      GameState.gems += 10;
+      GameState.save();
+
+      const starsHtml = [1, 2, 3].map(s =>
+        `<span class="${s <= earnedStars ? 'scale-125' : 'opacity-25 grayscale'}">⭐</span>`
+      ).join('');
+
+      document.getElementById('feedback-emoji').textContent = earnedStars === 3 ? '🏆' : '🎉';
+      document.getElementById('feedback-title').textContent = `¡Completaste: ${meta.title}!`;
+      document.getElementById('feedback-stars').innerHTML = starsHtml;
+      document.getElementById('feedback-msg').textContent = `Ganaste ${earnedStars} estrellas y +10 gemas ninja de bono.`;
+
+      const secBtn = document.getElementById('feedback-btn-secondary');
+      secBtn.classList.remove('hidden');
+      secBtn.onclick = () => {
+        closeModal();
+        startLevel(meta.id);
+      };
+
+      const priBtn = document.getElementById('feedback-btn-primary');
+      priBtn.textContent = meta.id < 8 ? 'Siguiente Nivel 🚀' : 'Ver Mi Diploma 🏆';
+      priBtn.onclick = () => {
+        closeModal();
+        if (meta.id < 8) {
+          startLevel(meta.id + 1);
+        } else {
+          goToMap();
+          openDiploma();
+        }
+      };
+
+      const modal = document.getElementById('feedback-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      speakText(`¡Felicitaciones! Completaste el nivel ${meta.title} y ganaste ${earnedStars} estrellas.`);
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('feedback-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    /* ==========================================================================
+       NIVEL 1: BARRAS DE CUBITOS (REPRESENTACIÓN HASTA 20 - OA 7)
+       Cubitos sin números internos para que el estudiante cuente realmente
+       ========================================================================== */
+    function setupLevel1(round) {
+      const targets = [10, 12, 15, 17, 19, 20];
+      const target = targets[round] || 15;
+      GameState.roundData = { target, cubes: new Array(20).fill(false) };
+
+      const renderBar = (offset) => `
+        <div class="bg-slate-100 p-2.5 sm:p-3 rounded-2xl border-4 border-slate-300 shadow-inner">
+          <div class="text-xs font-extrabold text-slate-500 mb-1.5 uppercase tracking-wider">
+            Barra de 10 cubitos (${offset === 0 ? 'Primera decena' : 'Segunda decena'})
+          </div>
+          <div class="grid grid-cols-10 gap-1.5 sm:gap-2">
+            ${Array.from({ length: 10 }, (_, i) => {
+              const idx = offset + i;
+              return `
+                <button id="cube-${idx}" onclick="toggleLevel1Cube(${idx})" aria-label="Cubito"
+                  class="cube-cell aspect-square w-full min-w-[26px] sm:min-w-[42px] rounded-xl bg-white border-3 border-slate-400 shadow-sm flex items-center justify-center">
+                </button>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+
+      const html = `
+        <div class="flex flex-col items-center gap-5">
+          <div class="flex items-center gap-4 bg-indigo-50 px-6 py-3 rounded-3xl border-4 border-indigo-300">
+            <span class="text-lg font-bold text-indigo-900">Número a representar:</span>
+            <span class="font-display font-bold text-4xl sm:text-5xl text-indigo-600 bg-white px-5 py-1 rounded-2xl border-2 border-indigo-200 shadow-sm">${target}</span>
+          </div>
+
+          <div class="w-full max-w-2xl flex flex-col gap-3">
+            ${renderBar(0)}
+            ${renderBar(10)}
+          </div>
+
+          <p class="text-sm sm:text-base font-bold text-slate-500 text-center">
+            🧠 ¡Cuenta en voz alta cada cuadrito que pintes!
+          </p>
+
+          <div class="flex flex-wrap items-center justify-center gap-4 mt-1">
+            <button onclick="clearLevel1Cubes()" class="btn-game bg-slate-200 text-slate-700 font-display font-bold text-lg px-5 py-3 rounded-2xl border-2 border-slate-300">
+              🧹 Borrar todo
+            </button>
+            <button onclick="checkLevel1()" class="btn-game bg-emerald-500 text-white font-display font-bold text-xl px-8 py-3 rounded-2xl border-2 border-emerald-700">
+              ✅ Comprobar
+            </button>
+          </div>
+        </div>
+      `;
+
+      renderLevelShell(
+        `Cuenta con cuidado y pinta exactamente ${target} cubitos en las barras.`,
+        `Cuenta con cuidado y pinta exactamente ${target} cubitos en las barras.`,
+        html
+      );
+    }
+
+    function toggleLevel1Cube(idx) {
+      AudioEngine.pop();
+      const d = GameState.roundData;
+      d.cubes[idx] = !d.cubes[idx];
+      const el = document.getElementById(`cube-${idx}`);
+      if (d.cubes[idx]) {
+        el.classList.add('active');
+        el.classList.remove('bg-white');
+      } else {
+        el.classList.remove('active');
+        el.classList.add('bg-white');
+      }
+    }
+
+    function clearLevel1Cubes() {
+      AudioEngine.click();
+      GameState.roundData.cubes.fill(false);
+      for (let i = 0; i < 20; i++) {
+        const el = document.getElementById(`cube-${i}`);
+        el.classList.remove('active');
+        el.classList.add('bg-white');
+      }
+    }
+
+    function checkLevel1() {
+      const d = GameState.roundData;
+      const count = d.cubes.filter(Boolean).length;
+      if (count === d.target) {
+        handleRoundSuccess(`¡Fantástico! Contaste y pintaste exactamente ${d.target} cubitos.`);
+      } else if (count < d.target) {
+        handleRoundError(`Pintaste ${count} cubitos, pero necesitamos ${d.target}. ¡Cuenta cuántos te faltan!`);
+      } else {
+        handleRoundError(`Pintaste ${count} cubitos y te pasaste de ${d.target}. ¡Quita algunos y vuelve a contar!`);
+      }
+    }
+
+    /* ==========================================================================
+       NIVEL 2: EL HUERTO DE MANZANAS Y CARAMELOS MÁGICOS (CONTEO, ANTECESOR Y SUCESOR)
+       3 actividades de conteo (11, 14, 18) + 3 de antecesor/sucesor (15, 50, 89/99)
+       ========================================================================== */
+    function setupLevel2(round) {
+      if (round < 3) {
+        const appleCounts = [11, 14, 18];
+        const correct = appleCounts[round];
+        const options = [correct - 2, correct - 1, correct, correct + 1].sort(() => Math.random() - 0.5);
+        GameState.roundData = { type: 'apples', correct };
+
+        const html = `
+          <div class="flex flex-col md:flex-row items-center justify-center gap-6">
+            <div class="bg-sky-50 p-4 rounded-3xl border-4 border-sky-200">
+              ${SVGAssets.appleTree(correct)}
+            </div>
+            <div class="flex flex-col items-center gap-3">
+              <p class="font-bold text-lg text-slate-600">¿Cuántas manzanas rojas hay en el árbol?</p>
+              <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                ${options.map(opt => `
+                  <button onclick="checkLevel2Apples(${opt})"
+                    class="btn-game bg-amber-400 hover:bg-amber-300 text-amber-950 font-display font-bold text-3xl sm:text-4xl w-20 h-20 sm:w-24 sm:h-24 rounded-3xl border-4 border-amber-600">
+                    ${opt}
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        `;
+        renderLevelShell(
+          'Cuenta con cuidado todas las manzanas del árbol y elige el número correcto.',
+          'Cuenta con cuidado todas las manzanas del árbol y toca el número correcto.',
+          html
+        );
+      } else {
+        const candyNumbers = [15, 50, 89];
+        const centerNum = candyNumbers[round - 3];
+        const prevNum = centerNum - 1;
+        const nextNum = centerNum + 1;
+        GameState.roundData = { type: 'candy', centerNum, prevNum, nextNum, selectedPrev: null, selectedNext: null, activeSlot: 'prev' };
+
+        const choices = [prevNum - 1, prevNum, nextNum, nextNum + 1, centerNum - 10, centerNum + 10]
+          .filter((v, i, a) => v > 0 && a.indexOf(v) === i)
+          .slice(0, 6)
+          .sort(() => Math.random() - 0.5);
+
+        const html = `
+          <div class="flex flex-col items-center gap-6">
+            <div class="flex items-center justify-center gap-1 sm:gap-2 my-2">
+              <button id="slot-prev" onclick="selectCandySlot('prev')"
+                class="btn-game w-24 h-24 sm:w-28 sm:h-28 rounded-l-[2.5rem] rounded-r-xl bg-pink-100 border-4 border-pink-500 flex flex-col items-center justify-center ring-4 ring-amber-400">
+                <span class="text-xs font-extrabold text-pink-700 uppercase">Antecesor</span>
+                <span id="val-prev" class="font-display font-bold text-3xl sm:text-4xl text-pink-900">?</span>
+              </button>
+
+              <div class="w-28 h-28 sm:w-36 sm:h-36 rounded-[2.5rem] bg-gradient-to-br from-pink-400 to-rose-500 border-4 border-rose-700 shadow-xl flex flex-col items-center justify-center text-white">
+                <span class="text-xs font-bold uppercase opacity-90">Número</span>
+                <span class="font-display font-bold text-4xl sm:text-6xl drop-shadow">${centerNum}</span>
+              </div>
+
+              <button id="slot-next" onclick="selectCandySlot('next')"
+                class="btn-game w-24 h-24 sm:w-28 sm:h-28 rounded-r-[2.5rem] rounded-l-xl bg-pink-100 border-4 border-pink-400 flex flex-col items-center justify-center">
+                <span class="text-xs font-extrabold text-pink-700 uppercase">Sucesor</span>
+                <span id="val-next" class="font-display font-bold text-3xl sm:text-4xl text-pink-900">?</span>
+              </button>
+            </div>
+
+            <div class="flex flex-wrap justify-center gap-3">
+              ${choices.map(num => `
+                <button onclick="fillCandySlot(${num})"
+                  class="btn-game bg-white hover:bg-amber-50 text-slate-800 font-display font-bold text-2xl sm:text-3xl px-5 py-3 rounded-2xl border-3 border-slate-300">
+                  ${num}
+                </button>
+              `).join('')}
+            </div>
+
+            <button onclick="checkLevel2Candy()" class="btn-game bg-emerald-500 text-white font-display font-bold text-xl px-8 py-3 rounded-2xl border-2 border-emerald-700">
+              ✅ Comprobar Caramelo
+            </button>
+          </div>
+        `;
+        renderLevelShell(
+          `Completa el caramelo con el Antecesor (antes) y el Sucesor (después) de ${centerNum}.`,
+          `Completa el caramelo con el número que va antes y el que va después de ${centerNum}.`,
+          html
+        );
+      }
+    }
+
+    function checkLevel2Apples(val) {
+      if (val === GameState.roundData.correct) {
+        handleRoundSuccess(`¡Exacto! Hay ${val} manzanas en el árbol.`);
+      } else {
+        handleRoundError(`Mmm, no hay ${val} manzanas. ¡Vuelve a contarlas una por una!`);
+      }
+    }
+
+    function selectCandySlot(slot) {
+      AudioEngine.click();
+      GameState.roundData.activeSlot = slot;
+      document.getElementById('slot-prev').classList.toggle('ring-4', slot === 'prev');
+      document.getElementById('slot-prev').classList.toggle('ring-amber-400', slot === 'prev');
+      document.getElementById('slot-next').classList.toggle('ring-4', slot === 'next');
+      document.getElementById('slot-next').classList.toggle('ring-amber-400', slot === 'next');
+    }
+
+    function fillCandySlot(num) {
+      AudioEngine.pop();
+      const d = GameState.roundData;
+      if (d.activeSlot === 'prev') {
+        d.selectedPrev = num;
+        document.getElementById('val-prev').textContent = num;
+        selectCandySlot('next');
+      } else {
+        d.selectedNext = num;
+        document.getElementById('val-next').textContent = num;
+      }
+    }
+
+    function checkLevel2Candy() {
+      const d = GameState.roundData;
+      if (d.selectedPrev === d.prevNum && d.selectedNext === d.nextNum) {
+        handleRoundSuccess(`¡Dulce victoria! ${d.prevNum}, ${d.centerNum} y ${d.nextNum}.`);
+      } else {
+        handleRoundError(`Revisa bien: antes de ${d.centerNum} va ${d.prevNum}, y después va ${d.nextNum}.`);
+      }
+    }
+
+    /* ==========================================================================
+       NIVEL 3: EL COCODRILO HAMBRIENTO (> , < , = - OA 12)
+       6 actividades con dificultad progresiva: números claros, decenas iguales, dígitos invertidos y sumas
+       ========================================================================== */
+    function setupLevel3(round) {
+      const challenges = [
+        { leftLabel: '24', rightLabel: '42', leftVal: 24, rightVal: 42 },
+        { leftLabel: '75', rightLabel: '65', leftVal: 75, rightVal: 65 },
+        { leftLabel: '39', rightLabel: '33', leftVal: 39, rightVal: 33 },
+        { leftLabel: '68', rightLabel: '86', leftVal: 68, rightVal: 86 },
+        { leftLabel: '10 + 4', rightLabel: '15', leftVal: 14, rightVal: 15 },
+        { leftLabel: '12 + 6', rightLabel: '18', leftVal: 18, rightVal: 18 }
+      ];
+      const item = challenges[round];
+      const correctSign = item.leftVal > item.rightVal ? '>' : item.leftVal < item.rightVal ? '<' : '=';
+      GameState.roundData = { left: item.leftLabel, right: item.rightLabel, correctSign };
+
+      const html = `
+        <div class="flex flex-col items-center gap-6">
+          <div class="flex items-center justify-center gap-3 sm:gap-7 bg-emerald-50 px-5 py-5 rounded-3xl border-4 border-emerald-300">
+            <div class="min-w-[6.5rem] sm:min-w-[8.5rem] h-24 sm:h-32 px-3 bg-white rounded-3xl border-4 border-emerald-500 flex items-center justify-center font-display font-bold text-3xl sm:text-5xl text-slate-800 shadow text-center">
+              ${item.leftLabel}
+            </div>
+            <div id="croc-dropzone" class="w-20 h-20 sm:w-28 sm:h-28 bg-amber-100 rounded-3xl border-4 border-dashed border-amber-500 flex items-center justify-center font-display font-bold text-5xl text-amber-600 shrink-0">
+              ?
+            </div>
+            <div class="min-w-[6.5rem] sm:min-w-[8.5rem] h-24 sm:h-32 px-3 bg-white rounded-3xl border-4 border-emerald-500 flex items-center justify-center font-display font-bold text-3xl sm:text-5xl text-slate-800 shadow text-center">
+              ${item.rightLabel}
+            </div>
+          </div>
+
+          <p class="font-bold text-base sm:text-lg text-slate-600 text-center">
+            🐊 ¡Recuerda! El cocodrilo siempre abre su boca hacia el valor <strong>MÁS GRANDE</strong>.
+          </p>
+
+          <div class="grid grid-cols-3 gap-3 sm:gap-5 w-full max-w-xl">
+            <button onclick="checkLevel3('<')" class="btn-game bg-white hover:bg-green-50 p-3 rounded-3xl border-4 border-green-500 flex flex-col items-center">
+              ${SVGAssets.crocodile('<')}
+              <span class="font-display font-bold text-sm sm:text-base text-green-900 mt-1">Menor que (&lt;)</span>
+            </button>
+            <button onclick="checkLevel3('=')" class="btn-game bg-white hover:bg-green-50 p-3 rounded-3xl border-4 border-green-500 flex flex-col items-center">
+              ${SVGAssets.crocodile('=')}
+              <span class="font-display font-bold text-sm sm:text-base text-green-900 mt-1">Igual a (=)</span>
+            </button>
+            <button onclick="checkLevel3('>')" class="btn-game bg-white hover:bg-green-50 p-3 rounded-3xl border-4 border-green-500 flex flex-col items-center">
+              ${SVGAssets.crocodile('>')}
+              <span class="font-display font-bold text-sm sm:text-base text-green-900 mt-1">Mayor que (&gt;)</span>
+            </button>
+          </div>
+        </div>
+      `;
+
+      renderLevelShell(
+        `Compara ${item.leftLabel} y ${item.rightLabel}. ¿Qué cocodrilo debe ir al centro?`,
+        `Compara ${item.leftLabel} y ${item.rightLabel}. Elige el cocodrilo que apunta al mayor, o el signo igual.`,
+        html
+      );
+    }
+
+    function checkLevel3(sign) {
+      const d = GameState.roundData;
+      if (sign === d.correctSign) {
+        const words = { '>': 'es mayor que', '<': 'es menor que', '=': 'es igual a' };
+        handleRoundSuccess(`¡Ñam, ñam! ${d.left} ${words[sign]} ${d.right}.`);
+      } else {
+        handleRoundError(`¡Cuidado! Calcula y compara bien ${d.left} con ${d.right}. La boca abierta apunta al mayor.`);
+      }
+    }
+
+    /* ==========================================================================
+       NIVEL 4: MARCOS DE 10 Y DESCOMPOSICIÓN (ADICIÓN Y SUSTRACCIÓN - OA 9 / OA 10)
+       2 sumas visuales + 2 restas tachando + 2 descomposiciones en sumandos
+       ========================================================================== */
+    function setupLevel4(round) {
+      if (round === 0 || round === 1) {
+        const exercises = [
+          { a: 7, b: 8, colorA: 'bg-lime-500 border-lime-700', colorB: 'bg-pink-500 border-pink-700', nameA: 'verdes', nameB: 'rosados' },
+          { a: 9, b: 7, colorA: 'bg-cyan-500 border-cyan-700', colorB: 'bg-amber-400 border-amber-600', nameA: 'celestes', nameB: 'amarillos' }
+        ];
+        const ex = exercises[round];
+        const ans = ex.a + ex.b;
+        const opts = [ans - 2, ans - 1, ans, ans + 2].sort(() => Math.random() - 0.5);
+        GameState.roundData = { ans };
+
+        const renderCubes = (count, cls) => Array.from({ length: count }, () =>
+          `<div class="w-7 h-7 sm:w-9 sm:h-9 rounded-lg ${cls} border-2 shadow-sm"></div>`
+        ).join('');
+
+        const html = `
+          <div class="flex flex-col items-center gap-6">
+            <div class="flex flex-wrap items-center justify-center gap-4 bg-slate-50 p-5 rounded-3xl border-4 border-slate-200">
+              <div class="flex flex-col items-center gap-2 bg-white p-3 rounded-2xl border-2 border-slate-200">
+                <div class="grid grid-cols-5 gap-1.5">${renderCubes(ex.a, ex.colorA)}</div>
+                <span class="font-display font-bold text-2xl text-slate-800">${ex.a}</span>
+              </div>
+              <span class="font-display font-bold text-4xl text-indigo-600">+</span>
+              <div class="flex flex-col items-center gap-2 bg-white p-3 rounded-2xl border-2 border-slate-200">
+                <div class="grid grid-cols-5 gap-1.5">${renderCubes(ex.b, ex.colorB)}</div>
+                <span class="font-display font-bold text-2xl text-slate-800">${ex.b}</span>
+              </div>
+              <span class="font-display font-bold text-4xl text-indigo-600">=</span>
+              <div class="w-20 h-20 rounded-2xl bg-indigo-100 border-4 border-dashed border-indigo-400 flex items-center justify-center font-display font-bold text-4xl text-indigo-600">
+                ?
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              ${opts.map(o => `
+                <button onclick="checkLevel4Simple(${o})"
+                  class="btn-game bg-indigo-500 text-white font-display font-bold text-3xl px-7 py-4 rounded-2xl border-4 border-indigo-700">
+                  ${o}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+        renderLevelShell(
+          `Suma los cubitos ${ex.nameA} y los ${ex.nameB}: ¿Cuánto es ${ex.a} + ${ex.b}?`,
+          `Suma los cubitos ${ex.nameA} y los ${ex.nameB}. ¿Cuánto es ${ex.a} más ${ex.b}?`,
+          html
+        );
+      } else if (round === 2 || round === 3) {
+        const subExercises = [
+          { total: 13, sub: 3, icon: '⭐' },
+          { total: 19, sub: 5, icon: '❤️' }
+        ];
+        const ex = subExercises[round - 2];
+        const ans = ex.total - ex.sub;
+        const opts = [ans - 2, ans, ans + 1, ans + 3].sort(() => Math.random() - 0.5);
+        GameState.roundData = { ans };
+
+        const itemsGrid = Array.from({ length: ex.total }, (_, i) => {
+          const crossed = i >= ex.total - ex.sub;
+          return `
+            <div class="relative w-10 h-10 sm:w-11 sm:h-11 rounded-xl ${crossed ? 'bg-rose-100 border-rose-300 opacity-60' : 'bg-amber-100 border-amber-400'} border-2 flex items-center justify-center text-xl">
+              ${ex.icon}
+              ${crossed ? '<span class="absolute inset-0 flex items-center justify-center text-rose-600 font-black text-3xl">✖</span>' : ''}
+            </div>
+          `;
+        }).join('');
+
+        const html = `
+          <div class="flex flex-col items-center gap-6">
+            <div class="bg-white p-4 rounded-3xl border-4 border-rose-200 max-w-xl">
+              <div class="grid grid-cols-7 sm:grid-cols-10 gap-2 justify-items-center">${itemsGrid}</div>
+            </div>
+            <div class="font-display font-bold text-3xl sm:text-4xl text-slate-800 bg-rose-50 px-6 py-2 rounded-2xl border-2 border-rose-300">
+              ${ex.total} - ${ex.sub} = ?
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              ${opts.map(o => `
+                <button onclick="checkLevel4Simple(${o})"
+                  class="btn-game bg-rose-500 text-white font-display font-bold text-3xl px-7 py-4 rounded-2xl border-4 border-rose-700">
+                  ${o}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+        renderLevelShell(
+          `Había ${ex.total} figuras y tachamos ${ex.sub}. ¿Cuánto es ${ex.total} - ${ex.sub}?`,
+          `Había ${ex.total} figuras y tachamos ${ex.sub}. ¿Cuánto es ${ex.total} menos ${ex.sub}?`,
+          html
+        );
+      } else {
+        const targets = [15, 17];
+        const target = targets[round - 4];
+        const validPairs = {
+          15: [9, 6],
+          17: [9, 8]
+        };
+        const correctPair = validPairs[target];
+        const wrong1 = [correctPair[0] + 1, correctPair[1] + 1];
+        const wrong2 = [correctPair[0] - 2, correctPair[1]];
+        const wrong3 = [10, target - 9];
+        const choices = [correctPair, wrong1, wrong2, wrong3].sort(() => Math.random() - 0.5);
+        GameState.roundData = { target };
+
+        const html = `
+          <div class="flex flex-col items-center gap-6">
+            <div class="flex items-center gap-3 bg-purple-100 px-7 py-4 rounded-3xl border-4 border-purple-400">
+              <span class="font-display font-bold text-4xl sm:text-5xl text-purple-800">${target}</span>
+              <span class="font-display font-bold text-4xl text-purple-600">=</span>
+              <span class="w-16 h-14 bg-white rounded-2xl border-3 border-dashed border-purple-500 flex items-center justify-center font-display font-bold text-2xl text-purple-500">?</span>
+              <span class="font-display font-bold text-3xl text-purple-600">+</span>
+              <span class="w-16 h-14 bg-white rounded-2xl border-3 border-dashed border-purple-500 flex items-center justify-center font-display font-bold text-2xl text-purple-500">?</span>
+            </div>
+
+            <p class="font-bold text-slate-600">Elige la pareja de números que al sumarlos forman ${target}:</p>
+
+            <div class="grid grid-cols-2 gap-4 w-full max-w-lg">
+              ${choices.map(([x, y]) => `
+                <button onclick="checkLevel4Decomp(${x}, ${y})"
+                  class="btn-game bg-purple-500 hover:bg-purple-400 text-white font-display font-bold text-2xl sm:text-3xl py-4 px-6 rounded-2xl border-4 border-purple-700">
+                  ${x} + ${y}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+        renderLevelShell(
+          `Descompón el número ${target}: ¿Qué pareja suma ${target}?`,
+          `Descompón el número ${target}. Elige la pareja de números que al sumarlos da ${target}.`,
+          html
+        );
+      }
+    }
+
+    function checkLevel4Simple(val) {
+      if (val === GameState.roundData.ans) {
+        handleRoundSuccess(`¡Súper cálculo! La respuesta es ${val}.`);
+      } else {
+        handleRoundError(`Mmm, ${val} no es el resultado. ¡Cuenta los elementos nuevamente!`);
+      }
+    }
+
+    function checkLevel4Decomp(x, y) {
+      const target = GameState.roundData.target;
+      if (x + y === target) {
+        handleRoundSuccess(`¡Genial! ${x} + ${y} es igual a ${target}.`);
+      } else {
+        handleRoundError(`${x} + ${y} suma ${x + y}, y buscamos llegar a ${target}.`);
+      }
+    }
+
+    /* ==========================================================================
+       NIVEL 5: EXPLORADORES DEL BOSQUE (UBICACIÓN ESPACIAL - OA 13)
+       4 preguntas sobre la escena del bosque + 2 desafíos de cuadrícula con referencia
+       ========================================================================== */
+    function setupLevel5(round) {
+      if (round < 4) {
+        const questions = [
+          {
+            q: 'Observa la imagen: ¿Quién está a la DERECHA de la flor?',
+            correct: 'tree',
+            options: [
+              { id: 'flower', label: '🌻 La flor' },
+              { id: 'tree', label: '🌳 El árbol' },
+              { id: 'ant', label: '🐜 La hormiga' }
+            ]
+          },
+          {
+            q: 'Observa la imagen: ¿Quién está a la IZQUIERDA del árbol?',
+            correct: 'flower',
+            options: [
+              { id: 'flower', label: '🌻 La flor' },
+              { id: 'butterfly', label: '🦋 La mariposa' },
+              { id: 'ant', label: '🐜 La hormiga' }
+            ]
+          },
+          {
+            q: 'Observa la imagen: ¿Quién está DEBAJO del árbol?',
+            correct: 'ant',
+            options: [
+              { id: 'cloud', label: '☁️ La nube' },
+              { id: 'flower', label: '🌻 La flor' },
+              { id: 'ant', label: '🐜 La hormiga' }
+            ]
+          },
+          {
+            q: 'Observa la imagen: ¿Quién está a la DERECHA del árbol y ARRIBA del pasto?',
+            correct: 'butterfly',
+            options: [
+              { id: 'flower', label: '🌻 La flor' },
+              { id: 'butterfly', label: '🦋 La mariposa' },
+              { id: 'ant', label: '🐜 La hormiga' }
+            ]
+          }
+        ];
+        const item = questions[round];
+        GameState.roundData = { correct: item.correct };
+
+        const html = `
+          <div class="flex flex-col items-center gap-5">
+            ${SVGAssets.forestScene()}
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-xl">
+              ${item.options.map(opt => `
+                <button onclick="checkLevel5Scene('${opt.id}')"
+                  class="btn-game bg-teal-500 hover:bg-teal-400 text-white font-display font-bold text-xl py-3.5 px-4 rounded-2xl border-4 border-teal-700">
+                  ${opt.label}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+        renderLevelShell(item.q, item.q, html);
+      } else if (round === 4) {
+        GameState.roundData = {
+          mode: 'grid1',
+          selectedItem: 'ring',
+          grid: { top: null, left: null, right: null, bottom: null }
+        };
+
+        const html = `
+          <div class="flex flex-col md:flex-row items-center justify-center gap-6">
+            <div class="bg-slate-50 p-4 rounded-3xl border-3 border-slate-200 flex flex-col gap-2.5 max-w-xs">
+              <p class="font-bold text-sm text-slate-700">1. Toca un objeto y luego toca su casilla:</p>
+              <button id="tool-ring" onclick="selectGridTool('ring')" class="btn-game bg-amber-100 border-3 border-amber-500 px-4 py-2.5 rounded-2xl font-display font-bold text-lg text-left flex items-center gap-2 ring-4 ring-amber-400">
+                <span>💍</span> <span>Anillo (Izquierda)</span>
+              </button>
+              <button id="tool-heart" onclick="selectGridTool('heart')" class="btn-game bg-rose-100 border-3 border-rose-400 px-4 py-2.5 rounded-2xl font-display font-bold text-lg text-left flex items-center gap-2">
+                <span>❤️</span> <span>Corazón (Arriba)</span>
+              </button>
+              <button id="tool-moon" onclick="selectGridTool('moon')" class="btn-game bg-indigo-100 border-3 border-indigo-400 px-4 py-2.5 rounded-2xl font-display font-bold text-lg text-left flex items-center gap-2">
+                <span>🌙</span> <span>Luna (Debajo)</span>
+              </button>
+            </div>
+
+            <div class="flex flex-col items-center gap-4">
+              <div class="grid grid-cols-3 gap-2 bg-sky-100 p-3 rounded-3xl border-4 border-sky-300 shadow-inner">
+                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/50"></div>
+                <button id="cell-top" onclick="placeInGrid('top')" class="btn-game w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white border-3 border-dashed border-sky-400 flex items-center justify-center text-4xl">?</button>
+                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/50"></div>
+
+                <button id="cell-left" onclick="placeInGrid('left')" class="btn-game w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white border-3 border-dashed border-sky-400 flex items-center justify-center text-4xl">?</button>
+                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-emerald-100 border-4 border-emerald-500 flex flex-col items-center justify-center shadow">
+                  <span class="text-4xl">🍎</span>
+                  <span class="text-[10px] font-extrabold text-emerald-800 uppercase">Centro</span>
+                </div>
+                <button id="cell-right" onclick="placeInGrid('right')" class="btn-game w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white border-3 border-dashed border-sky-400 flex items-center justify-center text-4xl">?</button>
+
+                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/50"></div>
+                <button id="cell-bottom" onclick="placeInGrid('bottom')" class="btn-game w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white border-3 border-dashed border-sky-400 flex items-center justify-center text-4xl">?</button>
+                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/50"></div>
+              </div>
+
+              <button onclick="checkLevel5Grid()" class="btn-game bg-emerald-500 text-white font-display font-bold text-xl px-8 py-3 rounded-2xl border-2 border-emerald-700">
+                ✅ Comprobar Ubicación
+              </button>
+            </div>
+          </div>
+        `;
+        renderLevelShell(
+          'Ubica el Anillo a la izquierda de la manzana, el Corazón arriba y la Luna debajo.',
+          'Ubica el anillo a la izquierda de la manzana, el corazón arriba y la luna debajo.',
+          html
+        );
+      } else {
+        // Ronda 5 (6ª actividad): Desafío avanzado con 4 puntos cardinales alrededor del Ninja
+        GameState.roundData = {
+          mode: 'grid2',
+          selectedItem: 'star',
+          grid: { top: null, left: null, right: null, bottom: null }
+        };
+
+        const html = `
+          <div class="flex flex-col md:flex-row items-center justify-center gap-6">
+            <div class="bg-slate-50 p-4 rounded-3xl border-3 border-slate-200 flex flex-col gap-2 max-w-xs">
+              <p class="font-bold text-sm text-slate-700">¡Misión Ninja! Ubica los 4 tesoros alrededor del Ninja:</p>
+              <button id="tool-star" onclick="selectGridTool('star')" class="btn-game bg-amber-100 border-3 border-amber-500 px-3 py-2 rounded-2xl font-display font-bold text-base text-left flex items-center gap-2 ring-4 ring-amber-400">
+                <span>⭐</span> <span>Estrella a la DERECHA</span>
+              </button>
+              <button id="tool-gem" onclick="selectGridTool('gem')" class="btn-game bg-cyan-100 border-3 border-cyan-400 px-3 py-2 rounded-2xl font-display font-bold text-base text-left flex items-center gap-2">
+                <span>💎</span> <span>Gema ARRIBA</span>
+              </button>
+              <button id="tool-key" onclick="selectGridTool('key')" class="btn-game bg-purple-100 border-3 border-purple-400 px-3 py-2 rounded-2xl font-display font-bold text-base text-left flex items-center gap-2">
+                <span>🔑</span> <span>Llave a la IZQUIERDA</span>
+              </button>
+              <button id="tool-scroll" onclick="selectGridTool('scroll')" class="btn-game bg-emerald-100 border-3 border-emerald-400 px-3 py-2 rounded-2xl font-display font-bold text-base text-left flex items-center gap-2">
+                <span>📜</span> <span>Pergamino DEBAJO</span>
+              </button>
+            </div>
+
+            <div class="flex flex-col items-center gap-4">
+              <div class="grid grid-cols-3 gap-2 bg-indigo-100 p-3 rounded-3xl border-4 border-indigo-300 shadow-inner">
+                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/50"></div>
+                <button id="cell-top" onclick="placeInGrid('top')" class="btn-game w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white border-3 border-dashed border-indigo-400 flex items-center justify-center text-4xl">?</button>
+                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/50"></div>
+
+                <button id="cell-left" onclick="placeInGrid('left')" class="btn-game w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white border-3 border-dashed border-indigo-400 flex items-center justify-center text-4xl">?</button>
+                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-amber-100 border-4 border-amber-500 flex flex-col items-center justify-center shadow">
+                  <span class="text-4xl">🥷</span>
+                  <span class="text-[10px] font-extrabold text-amber-900 uppercase">Ninja</span>
+                </div>
+                <button id="cell-right" onclick="placeInGrid('right')" class="btn-game w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white border-3 border-dashed border-indigo-400 flex items-center justify-center text-4xl">?</button>
+
+                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/50"></div>
+                <button id="cell-bottom" onclick="placeInGrid('bottom')" class="btn-game w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white border-3 border-dashed border-indigo-400 flex items-center justify-center text-4xl">?</button>
+                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/50"></div>
+              </div>
+
+              <button onclick="checkLevel5Grid()" class="btn-game bg-emerald-500 text-white font-display font-bold text-xl px-8 py-3 rounded-2xl border-2 border-emerald-700">
+                ✅ Comprobar Tesoros
+              </button>
+            </div>
+          </div>
+        `;
+        renderLevelShell(
+          'Ubica los 4 tesoros alrededor del Ninja siguiendo cada pista de dirección.',
+          'Ubica la estrella a la derecha, la gema arriba, la llave a la izquierda y el pergamino debajo del ninja.',
+          html
+        );
+      }
+    }
+
+    function checkLevel5Scene(id) {
+      if (id === GameState.roundData.correct) {
+        handleRoundSuccess('¡Excelente sentido de orientación, explorador!');
+      } else {
+        handleRoundError('Observa bien la imagen y fíjate en la izquierda, derecha, arriba y debajo.');
+      }
+    }
+
+    function selectGridTool(tool) {
+      AudioEngine.click();
+      GameState.roundData.selectedItem = tool;
+      const tools = GameState.roundData.mode === 'grid2'
+        ? ['star', 'gem', 'key', 'scroll']
+        : ['ring', 'heart', 'moon'];
+      tools.forEach(t => {
+        const btn = document.getElementById(`tool-${t}`);
+        if (btn) {
+          btn.classList.toggle('ring-4', t === tool);
+          btn.classList.toggle('ring-amber-400', t === tool);
+        }
+      });
+    }
+
+    function placeInGrid(pos) {
+      AudioEngine.pop();
+      const d = GameState.roundData;
+      const icons = {
+        ring: '💍', heart: '❤️', moon: '🌙',
+        star: '⭐', gem: '💎', key: '🔑', scroll: '📜'
+      };
+      Object.keys(d.grid).forEach(k => {
+        if (d.grid[k] === d.selectedItem) {
+          d.grid[k] = null;
+          document.getElementById(`cell-${k}`).textContent = '?';
+        }
+      });
+      d.grid[pos] = d.selectedItem;
+      document.getElementById(`cell-${pos}`).textContent = icons[d.selectedItem];
+    }
+
+    function checkLevel5Grid() {
+      const d = GameState.roundData;
+      const g = d.grid;
+      if (d.mode === 'grid2') {
+        if (g.right === 'star' && g.top === 'gem' && g.left === 'key' && g.bottom === 'scroll') {
+          handleRoundSuccess('¡Maestro de los mapas! Ubicaste los 4 tesoros perfectamente.');
+        } else {
+          handleRoundError('Revisa bien: Estrella derecha, Gema arriba, Llave izquierda y Pergamino debajo.');
+        }
+      } else {
+        if (g.left === 'ring' && g.top === 'heart' && g.bottom === 'moon') {
+          handleRoundSuccess('¡Perfecto! Ubicaste todos los objetos en su lugar exacto.');
+        } else {
+          handleRoundError('Revisa las pistas: Anillo a la izquierda, Corazón arriba y Luna debajo de la manzana.');
+        }
+      }
+    }
+
+    /* ==========================================================================
+       NIVEL 6: EL PICTOGRAMA DE COMIDAS FAVORITAS (DATOS Y PICTOGRAMAS - OA 20)
+       6 actividades de lectura, conteo, diferencia y suma de categorías
+       ========================================================================== */
+    function setupLevel6(round) {
+      const rows = [
+        { id: 'fries', name: 'Papas fritas', count: 10 },
+        { id: 'fruit', name: 'Frutas', count: 8 },
+        { id: 'salad', name: 'Ensaladas', count: 4 },
+        { id: 'chocolate', name: 'Chocolates', count: 7 }
+      ];
+
+      const questions = [
+        {
+          text: '¿Cuál fue el alimento que MÁS preferencias obtuvo?',
+          correct: 'fries',
+          options: [
+            { id: 'fries', label: '🍟 Papas fritas' },
+            { id: 'chocolate', label: '🍫 Chocolates' },
+            { id: 'fruit', label: '🍎 Frutas' }
+          ]
+        },
+        {
+          text: '¿Cuál fue el alimento que MENOS votos obtuvo?',
+          correct: 'salad',
+          options: [
+            { id: 'fruit', label: '🍎 Frutas' },
+            { id: 'salad', label: '🥗 Ensaladas' },
+            { id: 'chocolate', label: '🍫 Chocolates' }
+          ]
+        },
+        {
+          text: '¿Cuántos estudiantes prefirieron las Frutas?',
+          correct: '8',
+          options: [
+            { id: '10', label: '10 votos' },
+            { id: '8', label: '8 votos' },
+            { id: '7', label: '7 votos' }
+          ]
+        },
+        {
+          text: '¿Cuál es la diferencia entre el que más votos obtuvo (10) y el que menos obtuvo (4)?',
+          correct: '6',
+          options: [
+            { id: '14', label: '14' },
+            { id: '7', label: '7' },
+            { id: '6', label: '6' }
+          ]
+        },
+        {
+          text: 'Si juntamos los votos de Frutas (8) y Ensaladas (4), ¿cuántos votos suman en total?',
+          correct: '12',
+          options: [
+            { id: '11', label: '11 votos' },
+            { id: '12', label: '12 votos' },
+            { id: '13', label: '13 votos' }
+          ]
+        },
+        {
+          text: '¿Cuántos votos le faltan a Chocolates (7) para alcanzar a Papas fritas (10)?',
+          correct: '3',
+          options: [
+            { id: '2', label: '2 votos' },
+            { id: '3', label: '3 votos' },
+            { id: '4', label: '4 votos' }
+          ]
+        }
+      ];
+
+      const q = questions[round];
+      GameState.roundData = { correct: q.correct };
+
+      const tableRows = rows.map(r => `
+        <tr class="border-b-2 border-slate-200">
+          <td class="p-2 sm:p-2.5 font-bold text-slate-800 flex items-center gap-2 whitespace-nowrap">
+            ${SVGAssets.foodIcon(r.id)}
+            <span class="text-sm sm:text-base">${r.name}</span>
+          </td>
+          <td class="p-2 sm:p-2.5">
+            <div class="flex flex-wrap gap-1">
+              ${Array.from({ length: r.count }, () => `<span class="text-lg sm:text-2xl">😊</span>`).join('')}
+            </div>
+          </td>
+        </tr>
+      `).join('');
+
+      const html = `
+        <div class="flex flex-col items-center gap-5">
+          <div class="w-full max-w-2xl bg-white rounded-3xl border-4 border-indigo-300 overflow-hidden shadow-sm">
+            <div class="bg-indigo-600 text-white font-display font-bold px-4 py-2 text-center text-sm sm:text-base">
+              Alimentos Preferidos de 1° Básico (Cada 😊 = 1 voto)
+            </div>
+            <table class="w-full text-left border-collapse">
+              <tbody>${tableRows}</tbody>
+            </table>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-xl">
+            ${q.options.map(opt => `
+              <button onclick="checkLevel6('${opt.id}')"
+                class="btn-game bg-indigo-500 hover:bg-indigo-400 text-white font-display font-bold text-xl py-3.5 px-4 rounded-2xl border-4 border-indigo-700">
+                ${opt.label}
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      `;
+
+      renderLevelShell(q.text, q.text, html);
+    }
+
+    function checkLevel6(ans) {
+      if (ans === GameState.roundData.correct) {
+        handleRoundSuccess('¡Excelente lectura de datos!');
+      } else {
+        handleRoundError('Cuenta las caritas felices en la fila correspondiente del pictograma.');
+      }
+    }
+
+    /* ==========================================================================
+       NIVEL 7: HISTORIAS MATEMÁTICAS (RESOLUCIÓN DE PROBLEMAS - OA 9)
+       6 problemas progresivos (incluyendo problemas de 2 pasos al final)
+       ========================================================================== */
+    function setupLevel7(round) {
+      const stories = [
+        {
+          emoji: '🌸',
+          text: 'Cristina recolectó 15 flores en el bosque y al otro día recogió 3 más. ¿Cuántas flores juntó en total?',
+          visual: '🌸'.repeat(15) + ' + ' + '🌺'.repeat(3),
+          ans: 18,
+          options: [12, 18, 19]
+        },
+        {
+          emoji: '🎂',
+          text: 'Pablo tiene 15 años. ¿Cuántos años tendrá en 5 años más?',
+          visual: '15 años ➔ + 5 años más',
+          ans: 20,
+          options: [10, 15, 20]
+        },
+        {
+          emoji: '✏️',
+          text: 'A Miranda le gusta coleccionar lápices y ya tiene 11. Su papá le regaló 7 más. ¿Cuántos lápices tiene en total?',
+          visual: '✏️'.repeat(11) + ' + ' + '🖍️'.repeat(7),
+          ans: 18,
+          options: [17, 18, 19]
+        },
+        {
+          emoji: '🍬',
+          text: 'Victoria quiere regalar dulces a sus 20 amigos. Si solo tiene 13 dulces, ¿cuántos dulces le faltan?',
+          visual: 'Meta: 20 dulces • Tiene: 13 dulces',
+          ans: 7,
+          options: [7, 8, 13]
+        },
+        {
+          emoji: '📘',
+          text: 'Elena tiene un álbum de 20 láminas y ya pegó 15. ¿Cuántas láminas le faltan para completarlo?',
+          visual: 'Álbum: 20 láminas • Pegadas: 15',
+          ans: 5,
+          options: [5, 10, 15]
+        },
+        {
+          emoji: '🔮',
+          text: '¡Desafío Ninja! Tenías 16 bolitas mágicas, perdiste 4 jugando y luego tu amiga te regaló 3. ¿Cuántas bolitas tienes ahora?',
+          visual: '16 bolitas ➔ - 4 perdidas ➔ + 3 regaladas',
+          ans: 15,
+          options: [12, 15, 19]
+        }
+      ];
+
+      const s = stories[round];
+      GameState.roundData = { ans: s.ans };
+
+      const html = `
+        <div class="flex flex-col items-center gap-5">
+          <div class="bg-pink-50 border-4 border-pink-300 rounded-3xl p-5 max-w-2xl w-full text-center">
+            <div class="text-5xl mb-2">${s.emoji}</div>
+            <p class="font-bold text-lg sm:text-xl text-slate-800 mb-3">${s.text}</p>
+            <div class="bg-white rounded-2xl px-4 py-2.5 border-2 border-pink-200 font-display font-bold text-base sm:text-lg text-pink-700 inline-block">
+              Pista visual: ${s.visual}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-4 w-full max-w-md">
+            ${s.options.map(opt => `
+              <button onclick="checkLevel7(${opt})"
+                class="btn-game bg-rose-500 hover:bg-rose-400 text-white font-display font-bold text-3xl py-4 rounded-2xl border-4 border-rose-700">
+                ${opt}
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      `;
+
+      renderLevelShell(s.text, s.text, html);
+    }
+
+    function checkLevel7(val) {
+      if (val === GameState.roundData.ans) {
+        handleRoundSuccess(`¡Problema resuelto! La respuesta correcta es ${val}.`);
+      } else {
+        handleRoundError('Lee con calma cada paso para saber si debemos juntar (sumar) o quitar (restar).');
+      }
+    }
+
+    /* ==========================================================================
+       NIVEL 8: FÁBRICA DE PROBLEMAS Y GRAN DESAFÍO FINAL (CREAR Y APLICAR - OA 9)
+       2 fábricas de problemas (meta 15 y meta 18) + 4 retos relámpago mixtos
+       ========================================================================== */
+    function setupLevel8(round) {
+      if (round === 0 || round === 1) {
+        const targetSum = round === 0 ? 15 : 18;
+        const initA = round === 0 ? 10 : 12;
+        const initB = round === 0 ? 5 : 6;
+        GameState.roundData = { type: 'factory', targetSum, a: initA, b: initB, item: 'manzanas 🍎' };
+
+        const html = `
+          <div class="flex flex-col items-center gap-5">
+            <div class="bg-amber-50 border-4 border-amber-400 rounded-3xl p-5 max-w-2xl w-full text-center">
+              <span class="bg-amber-400 text-amber-950 font-display font-bold text-xs px-3 py-1 rounded-full uppercase">Fábrica de Historias Matemáticas (Meta: ${targetSum})</span>
+              <p id="factory-story" class="font-display font-bold text-xl sm:text-2xl text-slate-800 mt-3 leading-relaxed">
+                "El Ninja tenía <span class="text-indigo-600 underline">${initA}</span> <span id="factory-item">manzanas 🍎</span> y encontró <span class="text-emerald-600 underline">${initB}</span> más. En total juntó <span class="text-emerald-600">${targetSum}</span>."
+              </p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-2xl">
+              <div class="bg-white p-3 rounded-2xl border-2 border-slate-200 text-center">
+                <div class="text-xs font-extrabold text-slate-500 uppercase mb-1">1. Elige objeto</div>
+                <select id="sel-item" onchange="updateFactory()" class="w-full font-display font-bold text-lg bg-slate-100 rounded-xl p-2 border-2 border-slate-300">
+                  <option value="manzanas 🍎">Manzanas 🍎</option>
+                  <option value="flores 🌸">Flores 🌸</option>
+                  <option value="estrellas ⭐">Estrellas ⭐</option>
+                  <option value="lápices ✏️">Lápices ✏️</option>
+                </select>
+              </div>
+              <div class="bg-white p-3 rounded-2xl border-2 border-slate-200 text-center">
+                <div class="text-xs font-extrabold text-slate-500 uppercase mb-1">2. Primer grupo</div>
+                <input id="sel-a" type="number" min="1" max="${targetSum - 1}" value="${initA}" oninput="updateFactory()"
+                  class="w-full text-center font-display font-bold text-2xl bg-indigo-50 text-indigo-700 rounded-xl p-1.5 border-2 border-indigo-300" />
+              </div>
+              <div class="bg-white p-3 rounded-2xl border-2 border-slate-200 text-center">
+                <div class="text-xs font-extrabold text-slate-500 uppercase mb-1">3. Segundo grupo</div>
+                <input id="sel-b" type="number" min="1" max="${targetSum - 1}" value="${initB}" oninput="updateFactory()"
+                  class="w-full text-center font-display font-bold text-2xl bg-emerald-50 text-emerald-700 rounded-xl p-1.5 border-2 border-emerald-300" />
+              </div>
+            </div>
+
+            <div class="font-display font-bold text-2xl text-slate-800">
+              Operación: <span id="factory-eq" class="text-indigo-600">${initA} + ${initB} = ${targetSum}</span>
+            </div>
+
+            <button onclick="checkLevel8Factory()" class="btn-game bg-emerald-500 text-white font-display font-bold text-xl px-8 py-3.5 rounded-2xl border-2 border-emerald-700">
+              ✨ ¡Crear Mi Problema!
+            </button>
+          </div>
+        `;
+        renderLevelShell(
+          `¡Crea tu problema de suma! Elige dos números distintos que al sumarlos den exactamente ${targetSum}.`,
+          `Crea tu problema de suma. Elige dos números que al sumarlos den exactamente ${targetSum}.`,
+          html
+        );
+      } else {
+        const lightning = [
+          { q: '¿Qué número va justo ANTES del 50?', ans: 49, opts: [48, 49, 51] },
+          { q: '¿Cuánto es 9 + 7?', ans: 16, opts: [15, 16, 17] },
+          { q: '¿Cuánto es 19 - 5?', ans: 14, opts: [13, 14, 15] },
+          { q: '¿Qué signo va entre 81 [ ? ] 90?', ans: '<', opts: ['>', '<', '='] }
+        ];
+        const item = lightning[round - 2];
+        GameState.roundData = { type: 'lightning', ans: item.ans };
+
+        const html = `
+          <div class="flex flex-col items-center gap-6">
+            <div class="bg-gradient-to-br from-amber-100 to-yellow-200 border-4 border-amber-400 rounded-3xl px-8 py-6 text-center shadow-inner">
+              <span class="text-4xl block mb-2">⚡</span>
+              <p class="font-display font-bold text-2xl sm:text-3xl text-slate-800">${item.q}</p>
+            </div>
+            <div class="grid grid-cols-3 gap-4 w-full max-w-md">
+              ${item.opts.map(o => `
+                <button onclick="checkLevel8Lightning('${o}')"
+                  class="btn-game bg-amber-400 hover:bg-amber-300 text-amber-950 font-display font-bold text-3xl py-4 rounded-2xl border-4 border-amber-600">
+                  ${o}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+        renderLevelShell(`Desafío Relámpago Final: ${item.q}`, item.q, html);
+      }
+    }
+
+    function updateFactory() {
+      const item = document.getElementById('sel-item').value;
+      const a = parseInt(document.getElementById('sel-a').value) || 0;
+      const b = parseInt(document.getElementById('sel-b').value) || 0;
+      const sum = a + b;
+      const targetSum = GameState.roundData.targetSum;
+      GameState.roundData = { type: 'factory', targetSum, a, b, item };
+      document.getElementById('factory-eq').textContent = `${a} + ${b} = ${sum}`;
+      document.getElementById('factory-story').innerHTML =
+        `"El Ninja tenía <span class="text-indigo-600 underline">${a}</span> ${item} y encontró <span class="text-emerald-600 underline">${b}</span> más. En total juntó <span class="${sum === targetSum ? 'text-emerald-600' : 'text-rose-600'}">${sum}</span>."`;
+    }
+
+    function checkLevel8Factory() {
+      const { a, b, targetSum } = GameState.roundData;
+      if (a > 0 && b > 0 && a + b === targetSum) {
+        handleRoundSuccess(`¡Increíble creador! ${a} + ${b} = ${targetSum}.`);
+      } else {
+        handleRoundError(`Tu suma da ${a + b}, pero el desafío pide que el resultado sea exactamente ${targetSum}.`);
+      }
+    }
+
+    /* ==========================================================================
+       NIVEL 8: FÁBRICA DE PROBLEMAS Y GRAN DESAFÍO FINAL (CREAR Y APLICAR - OA 9)
+       Basado en Ítem E Pregunta 12 Unidad 4 ("Crea una suma cuyo resultado sea 15") + Desafío Mixto
+       ========================================================================== */
+    function setupLevel8(round) {
+      if (round === 0) {
+        // Fábrica de problemas: Crear una historia de adición que dé como resultado 15
+        GameState.roundData = { type: 'factory', a: 10, b: 5, item: 'manzanas 🍎' };
+
+        const html = `
+          <div class="flex flex-col items-center gap-5">
+            <div class="bg-amber-50 border-4 border-amber-400 rounded-3xl p-5 max-w-2xl w-full text-center">
+              <span class="bg-amber-400 text-amber-950 font-display font-bold text-xs px-3 py-1 rounded-full uppercase">Fábrica de Historias Matemáticas</span>
+              <p id="factory-story" class="font-display font-bold text-xl sm:text-2xl text-slate-800 mt-3 leading-relaxed">
+                "El Ninja tenía <span class="text-indigo-600 underline">10</span> <span id="factory-item">manzanas 🍎</span> y encontró <span class="text-emerald-600 underline">5</span> más. En total juntó <span class="text-rose-600">15</span>."
+              </p>
+            </div>
+
+            <!-- Controles para armar la historia que sume 15 -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-2xl">
+              <div class="bg-white p-3 rounded-2xl border-2 border-slate-200 text-center">
+                <div class="text-xs font-extrabold text-slate-500 uppercase mb-1">1. Elige objeto</div>
+                <select id="sel-item" onchange="updateFactory()" class="w-full font-display font-bold text-lg bg-slate-100 rounded-xl p-2 border-2 border-slate-300">
+                  <option value="manzanas 🍎">Manzanas 🍎</option>
+                  <option value="flores 🌸">Flores 🌸</option>
+                  <option value="estrellas ⭐">Estrellas ⭐</option>
+                  <option value="lápices ✏️">Lápices ✏️</option>
+                </select>
+              </div>
+              <div class="bg-white p-3 rounded-2xl border-2 border-slate-200 text-center">
+                <div class="text-xs font-extrabold text-slate-500 uppercase mb-1">2. Primer grupo</div>
+                <input id="sel-a" type="number" min="1" max="14" value="10" oninput="updateFactory()"
+                  class="w-full text-center font-display font-bold text-2xl bg-indigo-50 text-indigo-700 rounded-xl p-1.5 border-2 border-indigo-300" />
+              </div>
+              <div class="bg-white p-3 rounded-2xl border-2 border-slate-200 text-center">
+                <div class="text-xs font-extrabold text-slate-500 uppercase mb-1">3. Segundo grupo</div>
+                <input id="sel-b" type="number" min="1" max="14" value="5" oninput="updateFactory()"
+                  class="w-full text-center font-display font-bold text-2xl bg-emerald-50 text-emerald-700 rounded-xl p-1.5 border-2 border-emerald-300" />
+              </div>
+            </div>
+
+            <div class="font-display font-bold text-2xl text-slate-800">
+              Operación: <span id="factory-eq" class="text-indigo-600">10 + 5 = 15</span>
+            </div>
+
+            <button onclick="checkLevel8Factory()" class="btn-game bg-emerald-500 text-white font-display font-bold text-xl px-8 py-3.5 rounded-2xl border-2 border-emerald-700">
+              ✨ ¡Crear Mi Problema!
+            </button>
+          </div>
+        `;
+        renderLevelShell(
+          '¡Crea tu propio problema de suma! Elige dos números que al sumarlos den exactamente 15.',
+          'Crea tu propio problema de suma. Elige dos números que al sumarlos den exactamente 15.',
+          html
+        );
+      } else {
+        // Rondas relámpago mixtas finales (1 a 4)
+        const lightning = [
+          { q: '¿Qué número va justo ANTES del 50?', ans: 49, opts: [48, 49, 51] },
+          { q: '¿Cuánto es 9 + 7?', ans: 16, opts: [15, 16, 17] },
+          { q: '¿Cuánto es 19 - 5?', ans: 14, opts: [13, 14, 15] },
+          { q: '¿Qué signo va entre 81 [ ? ] 90?', ans: '<', opts: ['>', '<', '='] }
+        ];
+        const item = lightning[round - 1];
+        GameState.roundData = { type: 'lightning', ans: item.ans };
+
+        const html = `
+          <div class="flex flex-col items-center gap-6">
+            <div class="bg-gradient-to-br from-amber-100 to-yellow-200 border-4 border-amber-400 rounded-3xl px-8 py-6 text-center shadow-inner">
+              <span class="text-4xl block mb-2">⚡</span>
+              <p class="font-display font-bold text-2xl sm:text-3xl text-slate-800">${item.q}</p>
+            </div>
+            <div class="grid grid-cols-3 gap-4 w-full max-w-md">
+              ${item.opts.map(o => `
+                <button onclick="checkLevel8Lightning('${o}')"
+                  class="btn-game bg-amber-400 hover:bg-amber-300 text-amber-950 font-display font-bold text-3xl py-4 rounded-2xl border-4 border-amber-600">
+                  ${o}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+        renderLevelShell(`Desafío Relámpago Final: ${item.q}`, item.q, html);
+      }
+    }
+
+    function updateFactory() {
+      const item = document.getElementById('sel-item').value;
+      const a = parseInt(document.getElementById('sel-a').value) || 0;
+      const b = parseInt(document.getElementById('sel-b').value) || 0;
+      const sum = a + b;
+      GameState.roundData = { type: 'factory', a, b, item };
+      document.getElementById('factory-eq').textContent = `${a} + ${b} = ${sum}`;
+      document.getElementById('factory-story').innerHTML =
+        `"El Ninja tenía <span class="text-indigo-600 underline">${a}</span> ${item} y encontró <span class="text-emerald-600 underline">${b}</span> más. En total juntó <span class="${sum === 15 ? 'text-emerald-600' : 'text-rose-600'}">${sum}</span>."`;
+    }
+
+    function checkLevel8Factory() {
+      const { a, b } = GameState.roundData;
+      if (a > 0 && b > 0 && a + b === 15) {
+        handleRoundSuccess(`¡Increíble creador! ${a} + ${b} = 15.`);
+      } else {
+        handleRoundError(`Tu suma da ${a + b}, pero el desafío pide que el resultado sea exactamente 15.`);
+      }
+    }
+
+    function checkLevel8Lightning(val) {
+      if (String(val) === String(GameState.roundData.ans)) {
+        handleRoundSuccess('¡Velocidad Ninja! ¡Respuesta correcta!');
+      } else {
+        handleRoundError('¡Casi! Piensa con calma y vuelve a intentarlo.');
+      }
+    }
+
+    /* ==========================================================================
+       7. INICIALIZACIÓN AL CARGAR LA VENTANA
+       ========================================================================== */
+    window.onload = function () {
+      GameState.load();
+      renderWelcome();
+    };
+  </script>
+</body>
+</html>
